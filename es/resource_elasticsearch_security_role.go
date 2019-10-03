@@ -1,4 +1,4 @@
-// This section manage the role in elasticsearch
+// Manage the role in elasticsearch
 // API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
 package es
 
@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
+	"fmt"
 
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -176,6 +177,7 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 		defer res.Body.Close()
 		if res.IsError() {
 			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Role %s not found - removing from state", id)
 				log.Warnf("Role %s not found - removing from state", id)
 				d.SetId("")
 				return nil
@@ -198,7 +200,7 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	log.Debugf("Role %s", role)
+	log.Debugf("Role %+v", role)
 
 	d.Set("name", id)
 	d.Set("indices", role[id].Indices)
@@ -249,6 +251,7 @@ func resourceElasticsearchSecurityRoleDelete(d *schema.ResourceData, meta interf
 
 		if res.IsError() {
 			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Role %s not found - removing from state", id)
 				log.Warnf("Role %s not found - removing from state", id)
 				d.SetId("")
 				return nil
@@ -267,7 +270,6 @@ func resourceElasticsearchSecurityRoleDelete(d *schema.ResourceData, meta interf
 	return nil
 
 }
-
 
 // Print Role object as Json string
 func (r *RoleSpec) String() string {
