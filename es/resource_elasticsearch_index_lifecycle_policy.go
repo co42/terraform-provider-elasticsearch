@@ -1,3 +1,5 @@
+// Manage lifecycle policy in Elastricsearch
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
 package es
 
 import (
@@ -12,6 +14,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type LifeCycleSpec struct{
+	Policy *LifeCyclePolicy `json:"policy"`
+}
+type LifeCyclePolicy struct {
+	Phases map[string]LifeCyclePhase `json:"phases"`
+}
+type LifeCyclePhase struct {
+	MinAge string `json:"min_age"`
+	Actions map[string]map[string]interface{} `json:"actions"`
+}
+
+// Resource Lifecycle policy specification
 func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchIndexLifecyclePolicyCreate,
@@ -24,10 +38,36 @@ func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 				ForceNew: true,
 				Required: true,
 			},
-			"policy": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: diffSuppressIndexLifecyclePolicy,
+			"phase": {
+				Type:     schema.TypeSet,
+				Required: true,
+				Elem: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"min_age": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"actions": {
+						Type:     schema.TypeSet,
+						Required: true,
+						Elem: map[string]*schema.Schema{
+							"name": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+							"options": {
+								Type:     schema.TypeMap,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -55,6 +95,7 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 
 	var body string
 
+	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
@@ -107,6 +148,7 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
+	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
@@ -154,6 +196,7 @@ func createIndexLifecyclePolicy(d *schema.ResourceData, meta interface{}) error 
 	name := d.Get("name").(string)
 	policy := d.Get("policy").(string)
 
+	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
