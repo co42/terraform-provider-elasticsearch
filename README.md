@@ -24,7 +24,7 @@ See [the docs for more information](https://www.terraform.io/docs/plugins/basics
 provider "elasticsearch" {
     urls     = "http://elastic.company.com:9200"
     username = "elastic"
-    password = "changeme"  
+    password = "changeme"
 }
 ```
 
@@ -64,6 +64,69 @@ EOF
 }
 ```
 
+#### Elasticsearch user
+
+```tf
+resource "elasticsearch_user" "test" {
+  username 	= "terraform-test"
+  enabled 	= "true"
+  email 	= "no@no.no"
+  full_name = "test"
+  password 	= "changeme"
+  roles 	= ["kibana_user"]
+}
+```
+
+#### Elasticsearch lifecycle policy
+
+```tf
+resource "elasticsearch_index_lifecycle_policy" "test" {
+  name = "terraform-test"
+  policy = <<EOF
+{
+  "policy": {
+    "phases": {
+      "warm": {
+        "min_age": "10d",
+        "actions": {
+          "forcemerge": {
+            "max_num_segments": 1
+          }
+        }
+      },
+      "delete": {
+        "min_age": "30d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
+EOF
+}
+```
+
+#### Elasticsearch index template
+
+```tf
+resource "elasticsearch_index_template" "test" {
+  name 		= "terraform-test"
+  template 	= <<EOF
+{
+  "index_patterns": [
+    "test"
+  ],
+  "settings": {
+    "index.refresh_interval": "5s",
+	"index.lifecycle.name": "policy-logstash-backup",
+    "index.lifecycle.rollover_alias": "logstash-backup-alias"
+  },
+  "order": 2
+}
+EOF
+}
+```
 
 ## Development
 
