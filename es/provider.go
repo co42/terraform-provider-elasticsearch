@@ -59,6 +59,7 @@ func Provider() terraform.ResourceProvider {
 			"elasticsearch_role":                   resourceElasticsearchSecurityRole(),
 			"elasticsearch_role_mapping":           resourceElasticsearchSecurityRoleMapping(),
 			"elasticsearch_user":                   resourceElasticsearchSecurityUser(),
+			"elasticsearch_license":                resourceElasticsearchLicense(),
 		},
 
 		ConfigureFunc: providerConfigure,

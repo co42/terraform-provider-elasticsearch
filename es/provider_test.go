@@ -45,4 +45,5 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("ELASTICSEARCH_URLS"); v == "" {
 		t.Fatal("ELASTICSEARCH_URLS must be set for acceptance tests")
 	}
+
 }

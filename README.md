@@ -128,6 +128,14 @@ EOF
 }
 ```
 
+#### Elasticsearch license
+
+```tf
+resource "elasticsearch_license" "test" {
+  use_basic_license = "true"
+}
+```
+
 ## Development
 
 ### Requirements
