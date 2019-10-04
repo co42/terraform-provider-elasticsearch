@@ -88,8 +88,6 @@ func testCheckElasticsearchSecurityRoleMappingDestroy(s *terraform.State) error 
 			if res.IsError() {
 				if res.StatusCode == 404 {
 					return nil
-				} else {
-					return err
 				}
 			}
 		default:

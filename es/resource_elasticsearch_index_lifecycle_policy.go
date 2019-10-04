@@ -2,6 +2,7 @@ package es
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -68,7 +69,14 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
+			}
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -87,7 +95,14 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
+			}
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -123,7 +138,14 @@ func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, met
 		defer res.Body.Close()
 
 		if res.IsError() {
-			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
+			}
 		}
 	case *elastic6.Client:
 		client := meta.(*elastic6.Client)
@@ -140,7 +162,14 @@ func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, met
 		defer res.Body.Close()
 
 		if res.IsError() {
-			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
+			}
 		}
 	default:
 		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")

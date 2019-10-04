@@ -102,7 +102,9 @@ func testCheckElasticsearchIndexLifecyclePolicyDestroy(s *terraform.State) error
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				}
 			}
 		case *elastic6.Client:
 			client := meta.(*elastic6.Client)
@@ -118,10 +120,7 @@ func testCheckElasticsearchIndexLifecyclePolicyDestroy(s *terraform.State) error
 			if res.IsError() {
 				if res.StatusCode == 404 {
 					return nil
-				} else {
-					return err
 				}
-
 			}
 		default:
 			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")

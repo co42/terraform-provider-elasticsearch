@@ -86,15 +86,12 @@ func testCheckElasticsearchLicenseDestroy(s *terraform.State) error {
 			defer res.Body.Close()
 			if res.IsError() {
 				if res.StatusCode == 404 {
-
 					err = forceBasicLicense()
 					if err != nil {
 						return errors.New("Error when enabled trial license for other tests. You need to check by your hand")
 					}
 
 					return nil
-				} else {
-					return err
 				}
 			}
 		default:

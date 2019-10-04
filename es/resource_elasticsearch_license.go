@@ -5,6 +5,7 @@ package es
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -74,7 +75,15 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			return errors.Errorf("Error when get license: %s", res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] License not found - removing from state")
+				log.Warnf("License not found - removing from state")
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get license: %s", res.String())
+			}
+
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -115,7 +124,14 @@ func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}
 		defer res.Body.Close()
 
 		if res.IsError() {
-			return errors.Errorf("Error when delete license: %s", res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] License not found - removing from state")
+				log.Warnf("License not found - removing from state")
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete license: %s", res.String())
+			}
 		}
 	default:
 		return errors.New("License is only supported by the elastic library >= v6!")
