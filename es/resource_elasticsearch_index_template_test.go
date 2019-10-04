@@ -116,7 +116,11 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				} else {
+					return err
+				}
 			}
 		default:
 			return errors.New("Index template is only supported by the elastic library >= v6!")
@@ -130,8 +134,8 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 
 var testElasticsearchIndexTemplate = `
 resource "elasticsearch_index_template" "test" {
-  name = "terraform-test"
-  template = <<EOF
+  name 		= "terraform-test"
+  template 	= <<EOF
 {
   "index_patterns": [
     "test"

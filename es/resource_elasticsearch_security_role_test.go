@@ -87,7 +87,12 @@ func testCheckElasticsearchSecurityRoleDestroy(s *terraform.State) error {
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				} else {
+					return err
+				}
+
 			}
 		default:
 			return errors.New("Security role is only supported by the elastic library >= v6!")

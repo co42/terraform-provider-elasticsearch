@@ -86,7 +86,11 @@ func testCheckElasticsearchSecurityRoleMappingDestroy(s *terraform.State) error 
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				} else {
+					return err
+				}
 			}
 		default:
 			return errors.New("Role mapping is only supported by the elastic library >= v6!")
@@ -100,10 +104,10 @@ func testCheckElasticsearchSecurityRoleMappingDestroy(s *terraform.State) error 
 
 var testElasticsearchSecurityRoleMapping = `
 resource "elasticsearch_role_mapping" "test" {
-  name = "terraform-test"
-  enabled = "true"
-  roles = ["superuser"]
-  rules = <<EOF
+  name 		= "terraform-test"
+  enabled 	= "true"
+  roles 	= ["superuser"]
+  rules 	= <<EOF
 {
 	"field": {
 		"groups": "cn=admins,dc=example,dc=com"
