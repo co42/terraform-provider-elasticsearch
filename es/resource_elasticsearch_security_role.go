@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform/helper/schema"
