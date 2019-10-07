@@ -32,6 +32,10 @@ provider "elasticsearch" {
 
 #### Elasticsearch role
 
+Supported Elasticsearch version:
+  - v6
+  - v7
+
 ```tf
 resource "elasticsearch_role" "test" {
   name = "terraform-test"
