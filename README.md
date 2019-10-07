@@ -49,6 +49,10 @@ resource "elasticsearch_role" "test" {
 
 #### Elasticsearch role mapping
 
+Supported Elasticsearch version:
+  - v6
+  - v7
+
 ```tf
 resource "elasticsearch_role_mapping" "test" {
   name = "terraform-test"
@@ -78,6 +82,10 @@ resource "elasticsearch_user" "test" {
 ```
 
 #### Elasticsearch lifecycle policy
+
+Supported Elasticsearch version:
+  - v6
+  - v7
 
 ```tf
 resource "elasticsearch_index_lifecycle_policy" "test" {
@@ -109,6 +117,10 @@ EOF
 
 #### Elasticsearch index template
 
+Supported Elasticsearch version:
+  - v6
+  - v7
+
 ```tf
 resource "elasticsearch_index_template" "test" {
   name 		= "terraform-test"
@@ -129,6 +141,10 @@ EOF
 ```
 
 #### Elasticsearch license
+
+Supported Elasticsearch version:
+  - v6
+  - v7
 
 ```tf
 resource "elasticsearch_license" "test" {

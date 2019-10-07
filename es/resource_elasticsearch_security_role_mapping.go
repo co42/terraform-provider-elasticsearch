@@ -1,5 +1,8 @@
 // Manage the role mapping in Elasticsearch
 // API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
+// Supported version:
+//  - v6
+//  - v7
 package es
 
 import (
@@ -9,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/pkg/errors"
@@ -89,6 +93,34 @@ func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta i
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.XPack.SecurityGetRoleMapping(
+			client.API.XPack.SecurityGetRoleMapping.WithContext(context.Background()),
+			client.API.XPack.SecurityGetRoleMapping.WithPretty(),
+			client.API.XPack.SecurityGetRoleMapping.WithName(id),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Role mapping %s not found. Removing from state\n", id)
+				log.Warnf("Role mapping %s not found. Removing from state\n", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get role mapping %s: %s", id, res.String())
+			}
+		}
+		b, err = ioutil.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.Security.GetRoleMapping(
@@ -157,6 +189,33 @@ func resourceElasticsearchSecurityRoleMappingDelete(d *schema.ResourceData, meta
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.XPack.SecurityDeleteRoleMapping(
+			id,
+			client.API.XPack.SecurityDeleteRoleMapping.WithContext(context.Background()),
+			client.API.XPack.SecurityDeleteRoleMapping.WithPretty(),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		defer res.Body.Close()
+
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Role mapping %s not found - removing from state", id)
+				log.Warnf("Role mapping %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete role mapping %s: %s", id, res.String())
+			}
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.Security.DeleteRoleMapping(
@@ -217,6 +276,27 @@ func createRoleMapping(d *schema.ResourceData, meta interface{}) error {
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.XPack.SecurityPutRoleMapping(
+			name,
+			bytes.NewReader(data),
+			client.API.XPack.SecurityPutRoleMapping.WithContext(context.Background()),
+			client.API.XPack.SecurityPutRoleMapping.WithPretty(),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		defer res.Body.Close()
+
+		if res.IsError() {
+			return errors.Errorf("Error when add role mapping %s: %s", name, res.String())
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.Security.PutRoleMapping(
