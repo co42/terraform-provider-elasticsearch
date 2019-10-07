@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/pkg/errors"
@@ -44,6 +44,22 @@ func testCheckElasticsearchLicenseExists(name string) resource.TestCheckFunc {
 		meta := testAccProvider.Meta()
 
 		switch meta.(type) {
+		// v6
+		case *elastic6.Client:
+			client := meta.(*elastic6.Client)
+			res, err := client.API.XPack.LicenseGet(
+				client.API.XPack.LicenseGet.WithContext(context.Background()),
+				client.API.XPack.LicenseGet.WithPretty(),
+			)
+			if err != nil {
+				return err
+			}
+			defer res.Body.Close()
+			if res.IsError() {
+				return errors.Errorf("Error when get license: %s", res.String())
+			}
+
+		// v7
 		case *elastic7.Client:
 			client := meta.(*elastic7.Client)
 			res, err := client.API.License.Get(
@@ -74,6 +90,29 @@ func testCheckElasticsearchLicenseDestroy(s *terraform.State) error {
 		meta := testAccProvider.Meta()
 
 		switch meta.(type) {
+		// v6
+		case *elastic6.Client:
+			client := meta.(*elastic6.Client)
+			res, err := client.API.XPack.LicenseGet(
+				client.API.XPack.LicenseGet.WithContext(context.Background()),
+				client.API.XPack.LicenseGet.WithPretty(),
+			)
+			if err != nil {
+				return err
+			}
+			defer res.Body.Close()
+			if res.IsError() {
+				if res.StatusCode == 404 {
+					err = forceBasicLicense()
+					if err != nil {
+						return errors.New("Error when enabled trial license for other tests. You need to check by your hand")
+					}
+
+					return nil
+				}
+			}
+
+		// v7
 		case *elastic7.Client:
 			client := meta.(*elastic7.Client)
 			res, err := client.API.License.Get(
@@ -114,6 +153,24 @@ func forceBasicLicense() error {
 	meta := testAccProvider.Meta()
 
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.XPack.LicensePostStartBasic(
+			client.API.XPack.LicensePostStartBasic.WithContext(context.Background()),
+			client.API.XPack.LicensePostStartBasic.WithPretty(),
+			client.API.XPack.LicensePostStartBasic.WithAcknowledge(true),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		if res.IsError() {
+			return errors.New("Error when enabled basic license")
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.License.PostStartBasic(

@@ -1,5 +1,8 @@
 // Manage snapshot repository in elasticsearch
 // API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
+// Supported version:
+//  - v6
+//  - v7
 package es
 
 import (
@@ -9,6 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/pkg/errors"
@@ -76,6 +80,35 @@ func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta in
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.Snapshot.GetRepository(
+			client.API.Snapshot.GetRepository.WithContext(context.Background()),
+			client.API.Snapshot.GetRepository.WithPretty(),
+			client.API.Snapshot.GetRepository.WithRepository(id),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Snapshot repository %s not found - removing from state", id)
+				log.Warnf("Snapshot repository %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
+			}
+
+		}
+		b, err = ioutil.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.Snapshot.GetRepository(
@@ -127,6 +160,33 @@ func resourceElasticsearchSnapshotRepositoryDelete(d *schema.ResourceData, meta 
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+		res, err := client.API.Snapshot.DeleteRepository(
+			[]string{id},
+			client.API.Snapshot.DeleteRepository.WithContext(context.Background()),
+			client.API.Snapshot.DeleteRepository.WithPretty(),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		defer res.Body.Close()
+
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Snapshot repository %s not found - removing from state", id)
+				log.Warnf("Snapshot repository %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
+			}
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.Snapshot.DeleteRepository(
@@ -176,6 +236,28 @@ func createSnapshotRepository(d *schema.ResourceData, meta interface{}) error {
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
+	// v6
+	case *elastic6.Client:
+		client := meta.(*elastic6.Client)
+
+		res, err := client.API.Snapshot.CreateRepository(
+			name,
+			bytes.NewReader(b),
+			client.API.Snapshot.CreateRepository.WithContext(context.Background()),
+			client.API.Snapshot.CreateRepository.WithPretty(),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		defer res.Body.Close()
+
+		if res.IsError() {
+			return errors.Errorf("Error when add snapshot repository %s: %s", name, res.String())
+		}
+
+	// v7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 

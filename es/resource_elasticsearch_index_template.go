@@ -1,3 +1,9 @@
+// Manage index template in Elasticsearch
+// API documentation:
+// Supported version:
+//  - v6
+//  - v7
+
 package es
 
 import (
