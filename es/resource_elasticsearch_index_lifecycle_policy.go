@@ -126,9 +126,9 @@ func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, met
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.ILM.DeleteLifecycle(
+			id,
 			client.API.ILM.DeleteLifecycle.WithContext(context.Background()),
 			client.API.ILM.DeleteLifecycle.WithPretty(),
-			client.API.ILM.DeleteLifecycle.WithPolicy(id),
 		)
 
 		if err != nil {
@@ -187,9 +187,9 @@ func createIndexLifecyclePolicy(d *schema.ResourceData, meta interface{}) error 
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
 		res, err := client.API.ILM.PutLifecycle(
+			name,
 			client.API.ILM.PutLifecycle.WithContext(context.Background()),
 			client.API.ILM.PutLifecycle.WithPretty(),
-			client.API.ILM.PutLifecycle.WithPolicy(name),
 			client.API.ILM.PutLifecycle.WithBody(strings.NewReader(policy)),
 		)
 

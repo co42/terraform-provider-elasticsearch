@@ -1,5 +1,5 @@
-// Manage license in elasticsearch
-// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/update-license.html
+// Manage snapshot repository in elasticsearch
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
 package es
 
 import (
@@ -178,7 +178,6 @@ func createSnapshotRepository(d *schema.ResourceData, meta interface{}) error {
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
-		// Use enterprise lisence
 
 		res, err := client.API.Snapshot.CreateRepository(
 			name,

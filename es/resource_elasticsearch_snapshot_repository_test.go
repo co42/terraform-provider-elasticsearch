@@ -58,6 +58,7 @@ func testCheckElasticsearchSnapshotRepositoryExists(name string) resource.TestCh
 			if res.IsError() {
 				return errors.Errorf("Error when get snapshot repository %s: %s", rs.Primary.ID, res.String())
 			}
+
 		default:
 			return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
 		}

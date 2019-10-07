@@ -54,13 +54,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"elasticsearch_index_lifecycle_policy": resourceElasticsearchIndexLifecyclePolicy(),
-			"elasticsearch_index_template":         resourceElasticsearchIndexTemplate(),
-			"elasticsearch_role":                   resourceElasticsearchSecurityRole(),
-			"elasticsearch_role_mapping":           resourceElasticsearchSecurityRoleMapping(),
-			"elasticsearch_user":                   resourceElasticsearchSecurityUser(),
-			"elasticsearch_license":                resourceElasticsearchLicense(),
-			"elasticsearch_snapshot_repository":    resourceElasticsearchSnapshotRepository(),
+			"elasticsearch_index_lifecycle_policy":    resourceElasticsearchIndexLifecyclePolicy(),
+			"elasticsearch_index_template":            resourceElasticsearchIndexTemplate(),
+			"elasticsearch_role":                      resourceElasticsearchSecurityRole(),
+			"elasticsearch_role_mapping":              resourceElasticsearchSecurityRoleMapping(),
+			"elasticsearch_user":                      resourceElasticsearchSecurityUser(),
+			"elasticsearch_license":                   resourceElasticsearchLicense(),
+			"elasticsearch_snapshot_repository":       resourceElasticsearchSnapshotRepository(),
+			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -148,6 +148,24 @@ resource "elasticsearch_snapshot_repository" "test" {
 }
 ```
 
+#### Elasticsearch snapshot lifecycle policy
+
+```tf
+resource "elasticsearch_snapshot_lifecycle_policy" "test" {
+  name			= "terraform-test"
+  snapshot_name = "<daily-snap-{now/d}>"
+  schedule 		= "0 30 1 * * ?"
+  repository    = "${elasticsearch_snapshot_repository.test.name}"
+  configs		= <<EOF
+{
+	"indices": ["test-*"],
+	"ignore_unavailable": false,
+	"include_global_state": false
+}
+EOF
+}
+```
+
 ## Development
 
 ### Requirements
