@@ -74,6 +74,10 @@ EOF
 
 #### Elasticsearch user
 
+Supported Elasticsearch version:
+  - v6
+  - v7
+
 ```tf
 resource "elasticsearch_user" "test" {
   username 	= "terraform-test"
