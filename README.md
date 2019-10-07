@@ -174,6 +174,9 @@ resource "elasticsearch_snapshot_repository" "test" {
 
 #### Elasticsearch snapshot lifecycle policy
 
+Supported Elasticsearch version:
+  - v7
+
 ```tf
 resource "elasticsearch_snapshot_lifecycle_policy" "test" {
   name			= "terraform-test"

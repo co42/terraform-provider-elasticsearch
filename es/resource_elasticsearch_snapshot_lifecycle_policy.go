@@ -1,5 +1,7 @@
 // Manage snapshot lifecycle policy in elasticsearch
 // API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
+// Supported version:
+//  - v7
 package es
 
 import (
@@ -112,7 +114,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 			return err
 		}
 	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
 	}
 
 	log.Debugf("Get snapshot lifecycle policy successfully:\n%s", string(b))
@@ -171,7 +173,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyDelete(d *schema.ResourceData, 
 			}
 		}
 	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
 	}
 
 	d.SetId("")
@@ -220,7 +222,7 @@ func createSnapshotLifecyclePolicy(d *schema.ResourceData, meta interface{}) err
 			return errors.Errorf("Error when add snapshot lifecycle policy %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Snapshot lifecyle policy is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot lifecyle policy is only supported by the elastic library >= v7!")
 	}
 
 	return nil
