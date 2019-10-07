@@ -3,72 +3,85 @@
 package es
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
+// Snapshot repository object
+type SnapshotRepository map[string]SnapshotRepositorySpec
+type SnapshotRepositorySpec struct {
+	Type     string            `json:"type"`
+	Settings map[string]string `json:"settings"`
+}
+
 func resourceElasticsearchSnapshotRepository() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSnapshotRepositoryCreate,
-		Read:   resourceElasticsearchLicenseRead,
-		Update: resourceElasticsearchLicenseUpdate,
-		Delete: resourceElasticsearchLicenseDelete,
+		Read:   resourceElasticsearchSnapshotRepositoryRead,
+		Update: resourceElasticsearchSnapshotRepositoryUpdate,
+		Delete: resourceElasticsearchSnapshotRepositoryDelete,
 		Schema: map[string]*schema.Schema{
-			"license": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: suppressLicense,
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
-			"use_basic_license": {
-				Type:     schema.TypeBool,
+			"type": {
+				Type:     schema.TypeString,
 				Required: true,
 			},
-			"basic_license": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+			"settings": {
+				Type:     schema.TypeMap,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
-func resourceElasticsearchLicenseCreate(d *schema.ResourceData, meta interface{}) error {
-	err := createLicense(d, meta)
+func resourceElasticsearchSnapshotRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
+
+	name := d.Get("name").(string)
+
+	err := createSnapshotRepository(d, meta)
 	if err != nil {
 		return err
 	}
-	d.SetId("license")
-	return resourceElasticsearchLicenseRead(d, meta)
+	d.SetId(name)
+	return resourceElasticsearchSnapshotRepositoryRead(d, meta)
 }
 
-func resourceElasticsearchLicenseUpdate(d *schema.ResourceData, meta interface{}) error {
-	err := createLicense(d, meta)
+func resourceElasticsearchSnapshotRepositoryUpdate(d *schema.ResourceData, meta interface{}) error {
+	err := createSnapshotRepository(d, meta)
 	if err != nil {
 		return err
 	}
-	return resourceElasticsearchLicenseRead(d, meta)
+	return resourceElasticsearchSnapshotRepositoryRead(d, meta)
 }
 
-func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) error {
+func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 
-	var body string
+	id := d.Id()
+	var b []byte
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
-		res, err := client.API.License.Get(
-			client.API.License.Get.WithContext(context.Background()),
-			client.API.License.Get.WithPretty(),
+		res, err := client.API.Snapshot.GetRepository(
+			client.API.Snapshot.GetRepository.WithContext(context.Background()),
+			client.API.Snapshot.GetRepository.WithPretty(),
+			client.API.Snapshot.GetRepository.WithRepository(id),
 		)
 		if err != nil {
 			return err
@@ -76,45 +89,50 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 		defer res.Body.Close()
 		if res.IsError() {
 			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] License not found - removing from state")
-				log.Warnf("License not found - removing from state")
+				fmt.Printf("[WARN] Snapshot repository %s not found - removing from state", id)
+				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
 			} else {
-				return errors.Errorf("Error when get license: %s", res.String())
+				return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
 			}
 
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		body = string(b)
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
 	}
 
-	log.Debugf("Get license successfully:\n%s", body)
+	log.Debugf("Get Snapshot repository successfully:\n%s", string(b))
 
-	if d.Get("use_basic_license").(bool) == true {
-		d.Set("basic_license", body)
-	} else {
-		d.Set("license", body)
+	snapshotRepository := make(SnapshotRepository)
+	err := json.Unmarshal(b, &snapshotRepository)
+	if err != nil {
+		return err
 	}
-	d.Set("use_basic_license", d.Get("use_basic_license").(bool))
+
+	d.Set("name", id)
+	d.Set("type", snapshotRepository[id].Type)
+	d.Set("settings", snapshotRepository[id].Settings)
 
 	return nil
 }
 
-func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceElasticsearchSnapshotRepositoryDelete(d *schema.ResourceData, meta interface{}) error {
+
+	id := d.Id()
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
-		res, err := client.API.License.Delete(
-			client.API.License.Delete.WithContext(context.Background()),
-			client.API.License.Delete.WithPretty(),
+		res, err := client.API.Snapshot.DeleteRepository(
+			[]string{id},
+			client.API.Snapshot.DeleteRepository.WithContext(context.Background()),
+			client.API.Snapshot.DeleteRepository.WithPretty(),
 		)
 
 		if err != nil {
@@ -125,79 +143,49 @@ func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}
 
 		if res.IsError() {
 			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] License not found - removing from state")
-				log.Warnf("License not found - removing from state")
+				fmt.Printf("[WARN] Snapshot repository %s not found - removing from state", id)
+				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
 			} else {
-				return errors.Errorf("Error when delete license: %s", res.String())
+				return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
 			}
 		}
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
 	}
 
 	d.SetId("")
 	return nil
 }
 
-func createLicense(d *schema.ResourceData, meta interface{}) error {
-	license := d.Get("license").(string)
-	useBasicLicense := d.Get("use_basic_license").(bool)
+func createSnapshotRepository(d *schema.ResourceData, meta interface{}) error {
+	name := d.Get("name").(string)
+	snapshotType := d.Get("type").(string)
+	settings := convertMapInterfaceToMapString(d.Get("settings").(map[string]interface{}))
+
+	snapshotRepository := &SnapshotRepositorySpec{
+		Type:     snapshotType,
+		Settings: settings,
+	}
+
+	b, err := json.Marshal(snapshotRepository)
+	if err != nil {
+		return err
+	}
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
-		var err error
-		var res *esapi.Response
 		// Use enterprise lisence
-		if useBasicLicense == false {
-			log.Debug("Use enterprise license")
-			res, err = client.API.License.Post(
-				client.API.License.Post.WithContext(context.Background()),
-				client.API.License.Post.WithPretty(),
-				client.API.License.Post.WithAcknowledge(true),
-				client.API.License.Post.WithBody(strings.NewReader(license)),
-			)
-		} else {
-			// Use basic lisence if needed (basic license not yet enabled)
-			log.Debug("Use basic license")
-			res, err = client.API.License.GetBasicStatus(
-				client.API.License.GetBasicStatus.WithContext(context.Background()),
-				client.API.License.GetBasicStatus.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when check if basic license can be enabled: %s", res.String())
-			}
-			b, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return err
-			}
 
-			log.Debugf("Result when get basic license status: %s", string(b))
-
-			data := make(map[string]interface{})
-			err = json.Unmarshal(b, &data)
-			if err != nil {
-				return err
-			}
-
-			if data["eligible_to_start_basic"].(bool) == false {
-				log.Infof("Basic license is already enabled")
-				return nil
-			} else {
-				res, err = client.API.License.PostStartBasic(
-					client.API.License.PostStartBasic.WithContext(context.Background()),
-					client.API.License.PostStartBasic.WithPretty(),
-					client.API.License.PostStartBasic.WithAcknowledge(true),
-				)
-			}
-		}
+		res, err := client.API.Snapshot.CreateRepository(
+			name,
+			bytes.NewReader(b),
+			client.API.Snapshot.CreateRepository.WithContext(context.Background()),
+			client.API.Snapshot.CreateRepository.WithPretty(),
+		)
 
 		if err != nil {
 			return err
@@ -206,11 +194,17 @@ func createLicense(d *schema.ResourceData, meta interface{}) error {
 		defer res.Body.Close()
 
 		if res.IsError() {
-			return errors.Errorf("Error when add license: %s", res.String())
+			return errors.Errorf("Error when add snapshot repository %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
 	}
 
 	return nil
+}
+
+// Print snapshot repository object as Json string
+func (r *SnapshotRepositorySpec) String() string {
+	json, _ := json.Marshal(r)
+	return string(json)
 }

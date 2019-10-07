@@ -20,3 +20,12 @@ func convertArrayInterfaceToArrayString(raws []interface{}) []string {
 
 	return data
 }
+
+func convertMapInterfaceToMapString(raws map[string]interface{}) map[string]string {
+	data := make(map[string]string)
+	for k, v := range raws {
+		data[k] = v.(string)
+	}
+
+	return data
+}

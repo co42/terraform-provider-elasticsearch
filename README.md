@@ -136,6 +136,18 @@ resource "elasticsearch_license" "test" {
 }
 ```
 
+#### Elasticsearch snapshot repository
+
+```tf
+resource "elasticsearch_snapshot_repository" "test" {
+  name		= "terraform-test"
+  type 		= "fs"
+  settings 	= {
+	"location" =  "/tmp"
+  }
+}
+```
+
 ## Development
 
 ### Requirements
