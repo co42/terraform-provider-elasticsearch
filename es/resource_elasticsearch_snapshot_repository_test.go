@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/pkg/errors"
@@ -44,6 +44,23 @@ func testCheckElasticsearchSnapshotRepositoryExists(name string) resource.TestCh
 		meta := testAccProvider.Meta()
 
 		switch meta.(type) {
+		// v6
+		case *elastic6.Client:
+			client := meta.(*elastic6.Client)
+			res, err := client.API.Snapshot.GetRepository(
+				client.API.Snapshot.GetRepository.WithContext(context.Background()),
+				client.API.Snapshot.GetRepository.WithPretty(),
+				client.API.Snapshot.GetRepository.WithRepository(rs.Primary.ID),
+			)
+			if err != nil {
+				return err
+			}
+			defer res.Body.Close()
+			if res.IsError() {
+				return errors.Errorf("Error when get snapshot repository %s: %s", rs.Primary.ID, res.String())
+			}
+
+		// v7
 		case *elastic7.Client:
 			client := meta.(*elastic7.Client)
 			res, err := client.API.Snapshot.GetRepository(
@@ -76,6 +93,25 @@ func testCheckElasticsearchSnapshotRepositoryDestroy(s *terraform.State) error {
 		meta := testAccProvider.Meta()
 
 		switch meta.(type) {
+		// v6
+		case *elastic6.Client:
+			client := meta.(*elastic6.Client)
+			res, err := client.API.Snapshot.GetRepository(
+				client.API.Snapshot.GetRepository.WithContext(context.Background()),
+				client.API.Snapshot.GetRepository.WithPretty(),
+				client.API.Snapshot.GetRepository.WithRepository(rs.Primary.ID),
+			)
+			if err != nil {
+				return err
+			}
+			defer res.Body.Close()
+			if res.IsError() {
+				if res.StatusCode == 404 {
+					return nil
+				}
+			}
+
+		// v7
 		case *elastic7.Client:
 			client := meta.(*elastic7.Client)
 			res, err := client.API.Snapshot.GetRepository(

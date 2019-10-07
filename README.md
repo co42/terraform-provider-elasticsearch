@@ -162,6 +162,10 @@ resource "elasticsearch_license" "test" {
 
 #### Elasticsearch snapshot repository
 
+Supported Elasticsearch version:
+  - v6
+  - v7
+
 ```tf
 resource "elasticsearch_snapshot_repository" "test" {
   name		= "terraform-test"
