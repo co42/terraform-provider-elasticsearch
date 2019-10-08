@@ -195,12 +195,17 @@ __The following arguments are supported:__
   - **name**: (required) Identifier for the policy.
   - **policy**: (required) The policy specification. It's a string as JSON object.
 
-#### Elasticsearch index template
+#### Index template
 
-Supported Elasticsearch version:
+This resource permit to manage the index template in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+
+__Sample:__
 ```tf
 resource "elasticsearch_index_template" "test" {
   name 		= "terraform-test"
@@ -219,6 +224,10 @@ resource "elasticsearch_index_template" "test" {
 EOF
 }
 ```
+
+__The following arguments are supported:__
+  - **name**: (required) Identifier for the template.
+  - **template**: (required) The template specification. It's a string as JSON object.
 
 #### Elasticsearch license
 
