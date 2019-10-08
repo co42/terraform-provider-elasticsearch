@@ -252,10 +252,14 @@ __The following arguments are supported:__
 
 #### Elasticsearch snapshot repository
 
-Supported Elasticsearch version:
+This resource permit to manage snapshot repository in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+__Sample:__
 ```tf
 resource "elasticsearch_snapshot_repository" "test" {
   name		= "terraform-test"
@@ -265,6 +269,11 @@ resource "elasticsearch_snapshot_repository" "test" {
   }
 }
 ```
+
+__The following arguments are supported:__
+  - **name**: (required) Identifier for the repository.
+  - **type**: (required) The repository type.
+  - **settings**: (required) The list of settings. It's a map of string.
 
 #### Elasticsearch snapshot lifecycle policy
 
