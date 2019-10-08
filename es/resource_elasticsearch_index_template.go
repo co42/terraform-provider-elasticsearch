@@ -1,5 +1,5 @@
 // Manage index template in Elasticsearch
-// API documentation:
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
 // Supported version:
 //  - v6
 //  - v7
