@@ -1,5 +1,5 @@
 // Manage index lifecylce policy in Elasticsearch
-// API documentation:
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
 // Supported version:
 //  - v6
 //  - v7

@@ -42,7 +42,7 @@ __The following arguments are supported:__
 
 ### Resources
 
-#### Elasticsearch role
+#### Role
 
 This resource permit to manage role in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
@@ -89,7 +89,7 @@ __Application object__:
   - **resources**: (optional) A list resources to which the privileges are applied.
 
 
-#### Elasticsearch role mapping
+#### Role mapping
 
 This resource permit to manage role mapping ins Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
@@ -122,7 +122,7 @@ __The following arguments are supported:__
   - **metadata:** (optional) Additional metadata that helps define which roles are assigned to each user. It's a string as JSON object.
 
 
-#### Elasticsearch user
+#### User
 
 This resource permit to manage internal user in Elasticsearch.
 You can see the API documenation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html
@@ -153,12 +153,16 @@ __The following arguments are supported:__
   - **roles**: (required) A set of roles the user has
   - **metadata**: (optional) Arbitrary metadata that you want to associate with the user
 
-#### Elasticsearch lifecycle policy
+#### Index lifecycle policy
 
-Supported Elasticsearch version:
+This resource permit to manage the index lifecycle policy in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+__Sample:__
 ```tf
 resource "elasticsearch_index_lifecycle_policy" "test" {
   name = "terraform-test"
@@ -186,6 +190,10 @@ resource "elasticsearch_index_lifecycle_policy" "test" {
 EOF
 }
 ```
+
+__The following arguments are supported:__
+  - **name**: (required) Identifier for the policy.
+  - **policy**: (required) The policy specification. It's a string as JSON object.
 
 #### Elasticsearch index template
 
