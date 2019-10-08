@@ -83,7 +83,7 @@ __Indice object__:
   - **query**: (optional) A search query that defines the documents the owners of the role have read access to. A document within the specified indices must match this query in order for it to be accessible by the owners of the role. It's a string or a string as JSON object.
   - **field_security**: (optional) The document fields that the owners of the role have read access to. It's a string as JSON object
 
-__ Application object__:
+__Application object__:
   - **application**: (required) The name of the application to which this entry applies.
   - **privileges**: (optional)  A list of strings, where each element is the name of an application privilege or action.
   - **resources**: (optional) A list resources to which the privileges are applied.
@@ -91,10 +91,14 @@ __ Application object__:
 
 #### Elasticsearch role mapping
 
-Supported Elasticsearch version:
+This resource permit to manage role mapping ins Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+__Sample__:
 ```tf
 resource "elasticsearch_role_mapping" "test" {
   name = "terraform-test"
@@ -109,6 +113,14 @@ resource "elasticsearch_role_mapping" "test" {
 EOF
 }
 ```
+
+__The following arguments are supported:__
+  - **name:** (required) The distinct name that identifies the role mapping.
+  - **enabled:** (optional) Mappings that have enabled set to false are ignored when role mapping is performed.
+  - **rules**: (required) The rules that determine which users should be matched by the mapping. A rule is a logical condition that is expressed by using a JSON DSL. It's a string as JSON object.
+  - **roles**: (required) A list of role names that are granted to the users that match the role mapping rules.
+  - **metadata:** (optional) Additional metadata that helps define which roles are assigned to each user. It's a string as JSON object.
+
 
 #### Elasticsearch user
 
