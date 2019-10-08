@@ -204,7 +204,6 @@ __Supported Elasticsearch version:__
   - v6
   - v7
 
-
 __Sample:__
 ```tf
 resource "elasticsearch_index_template" "test" {
@@ -229,7 +228,7 @@ __The following arguments are supported:__
   - **name**: (required) Identifier for the template.
   - **template**: (required) The template specification. It's a string as JSON object.
 
-#### Elasticsearch license
+#### License
 
 This resource permit to manage license in Elasticsearch.
 You can use enterprise license file or enable basic license.
@@ -250,7 +249,7 @@ __The following arguments are supported:__
   - **license**: (optional) The license contend file.
   - **use_basic_license**: (required) Set `true` to use basic licence.
 
-#### Elasticsearch snapshot repository
+#### Snapshot repository
 
 This resource permit to manage snapshot repository in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
@@ -277,9 +276,13 @@ __The following arguments are supported:__
 
 #### Elasticsearch snapshot lifecycle policy
 
-Supported Elasticsearch version:
+This resource permit to manage snapshot lifecyle policy.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
+
+__Supported Elasticsearch version:__
   - v7
 
+__Sample:__
 ```tf
 resource "elasticsearch_snapshot_lifecycle_policy" "test" {
   name			= "terraform-test"
@@ -295,6 +298,13 @@ resource "elasticsearch_snapshot_lifecycle_policy" "test" {
 EOF
 }
 ```
+
+__The following arguments are supported:__
+  - **name**: (required) Identifier for the policy.
+  - **snapshot_name**: (required) A name automatically given to each snapshot performed by this policy.
+  - **schedule**: (required) A periodic or absolute time schedule.
+  - **repository**: (required) The snapshot repository that will contain snapshots created by this policy.
+  - **configs**: (optional) Configuration for each snapshot that will be created by this policy. It's a string as JSON object.
 
 ## Development
 
