@@ -124,10 +124,14 @@ __The following arguments are supported:__
 
 #### Elasticsearch user
 
-Supported Elasticsearch version:
+This resource permit to manage internal user in Elasticsearch.
+You can see the API documenation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+__Sample:__
 ```tf
 resource "elasticsearch_user" "test" {
   username 	= "terraform-test"
@@ -138,6 +142,16 @@ resource "elasticsearch_user" "test" {
   roles 	= ["kibana_user"]
 }
 ```
+
+__The following arguments are supported:__
+  - **username**: (required) An identifier for the user.
+  - **email**: (required) The email of the user.
+  - **full_name**: (optional) The full name of the user.
+  - **password**: (optional) The user’s password. Passwords must be at least 6 characters long. When adding a user, one of password or password_hash is required.
+  - **password_hash**: (optional) A hash of the user’s password
+  - **enabled**: (optional) Specifies whether the user is enabled
+  - **roles**: (required) A set of roles the user has
+  - **metadata**: (optional) Arbitrary metadata that you want to associate with the user
 
 #### Elasticsearch lifecycle policy
 
