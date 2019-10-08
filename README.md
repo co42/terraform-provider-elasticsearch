@@ -231,15 +231,24 @@ __The following arguments are supported:__
 
 #### Elasticsearch license
 
-Supported Elasticsearch version:
+This resource permit to manage license in Elasticsearch.
+You can use enterprise license file or enable basic license.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/update-license.html
+
+__Supported Elasticsearch version:__
   - v6
   - v7
 
+__Sample:__
 ```tf
 resource "elasticsearch_license" "test" {
   use_basic_license = "true"
 }
 ```
+
+__The following arguments are supported:__
+  - **license**: (optional) The license contend file.
+  - **use_basic_license**: (required) Set `true` to use basic licence.
 
 #### Elasticsearch snapshot repository
 
