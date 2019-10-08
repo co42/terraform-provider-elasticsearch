@@ -29,6 +29,12 @@ func TestAccElasticsearchSnapshotLifecyclePolicy(t *testing.T) {
 					testCheckElasticsearchSnapshotLifecyclePolicyExists("elasticsearch_snapshot_lifecycle_policy.test"),
 				),
 			},
+			{
+				ResourceName:            "elasticsearch_snapshot_lifecycle_policy.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"configs"},
+			},
 		},
 	})
 }

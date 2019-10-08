@@ -27,6 +27,11 @@ func TestAccElasticsearchSecurityUser(t *testing.T) {
 					testCheckElasticsearchSecurityUserExists("elasticsearch_user.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_user.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

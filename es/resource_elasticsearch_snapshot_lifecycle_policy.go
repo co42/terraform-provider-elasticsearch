@@ -35,6 +35,11 @@ func resourceElasticsearchSnapshotLifecyclePolicy() *schema.Resource {
 		Read:   resourceElasticsearchSnapshotLifecyclePolicyRead,
 		Update: resourceElasticsearchSnapshotLifecyclePolicyUpdate,
 		Delete: resourceElasticsearchSnapshotLifecyclePolicyDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -124,6 +129,8 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 	if err != nil {
 		return err
 	}
+
+	log.Debugf("SnapshotLifecyclePolicy object %+v", snapshotLifecyclePolicy)
 
 	// Manage bug https://github.com/elastic/elasticsearch/issues/47664
 	if len(snapshotLifecyclePolicy) == 0 {

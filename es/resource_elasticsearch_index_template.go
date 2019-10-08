@@ -25,6 +25,11 @@ func resourceElasticsearchIndexTemplate() *schema.Resource {
 		Update: resourceElasticsearchIndexTemplateUpdate,
 		Read:   resourceElasticsearchIndexTemplateRead,
 		Delete: resourceElasticsearchIndexTemplateDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,

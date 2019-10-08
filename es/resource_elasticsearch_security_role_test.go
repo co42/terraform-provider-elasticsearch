@@ -27,6 +27,11 @@ func TestAccElasticsearchSecurityRole(t *testing.T) {
 					testCheckElasticsearchSecurityRoleExists("elasticsearch_role.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_role.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

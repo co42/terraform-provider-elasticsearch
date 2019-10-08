@@ -27,6 +27,11 @@ func TestAccElasticsearchSecurityRoleMapping(t *testing.T) {
 					testCheckElasticsearchSecurityRoleMappingExists("elasticsearch_role_mapping.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_role_mapping.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

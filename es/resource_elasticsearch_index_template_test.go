@@ -28,6 +28,11 @@ func TestAccElasticsearchIndex(t *testing.T) {
 					testCheckElasticsearchIndexTemplateExists("elasticsearch_index_template.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_index_template.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

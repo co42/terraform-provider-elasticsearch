@@ -27,6 +27,11 @@ func TestAccElasticsearchSnapshotRepository(t *testing.T) {
 					testCheckElasticsearchSnapshotRepositoryExists("elasticsearch_snapshot_repository.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_snapshot_repository.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

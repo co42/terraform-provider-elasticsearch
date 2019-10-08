@@ -28,6 +28,11 @@ func TestAccElasticsearchIndexLifecyclePolicy(t *testing.T) {
 					testCheckElasticsearchIndexLifecyclePolicyExists("elasticsearch_index_lifecycle_policy.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_index_lifecycle_policy.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

@@ -27,6 +27,11 @@ func resourceElasticsearchLicense() *schema.Resource {
 		Read:   resourceElasticsearchLicenseRead,
 		Update: resourceElasticsearchLicenseUpdate,
 		Delete: resourceElasticsearchLicenseDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"license": {
 				Type:             schema.TypeString,

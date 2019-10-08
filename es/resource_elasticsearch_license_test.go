@@ -27,6 +27,11 @@ func TestAccElasticsearchLicense(t *testing.T) {
 					testCheckElasticsearchLicenseExists("elasticsearch_license.test"),
 				),
 			},
+			{
+				ResourceName:      "elasticsearch_license.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

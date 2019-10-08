@@ -39,6 +39,10 @@ func resourceElasticsearchSecurityUser() *schema.Resource {
 		Update: resourceElasticsearchSecurityUserUpdate,
 		Delete: resourceElasticsearchSecurityUserDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:     schema.TypeString,

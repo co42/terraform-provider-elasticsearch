@@ -25,6 +25,11 @@ func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 		Read:   resourceElasticsearchIndexLifecyclePolicyRead,
 		Update: resourceElasticsearchIndexLifecyclePolicyUpdate,
 		Delete: resourceElasticsearchIndexLifecyclePolicyDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
