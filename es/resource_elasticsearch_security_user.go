@@ -270,7 +270,7 @@ func resourceElasticsearchSecurityUserUpdate(d *schema.ResourceData, meta interf
 
 	}
 
-	return resourceElasticsearchSecurityRoleRead(d, meta)
+	return resourceElasticsearchSecurityUserRead(d, meta)
 }
 
 // Delete existing role in Elasticsearch
