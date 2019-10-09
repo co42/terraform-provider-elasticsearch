@@ -1,5 +1,7 @@
 # terraform-provider-elasticsearch
 
+[![CircleCI](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master.svg?style=svg)](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master)
+
 This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
 
 We fork this project for the following items:
