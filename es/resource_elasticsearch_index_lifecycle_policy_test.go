@@ -8,8 +8,8 @@ import (
 	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +27,11 @@ func TestAccElasticsearchIndexLifecyclePolicy(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckElasticsearchIndexLifecyclePolicyExists("elasticsearch_index_lifecycle_policy.test"),
 				),
+			},
+			{
+				ResourceName:      "elasticsearch_index_lifecycle_policy.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -102,7 +107,9 @@ func testCheckElasticsearchIndexLifecyclePolicyDestroy(s *terraform.State) error
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				}
 			}
 		case *elastic6.Client:
 			client := meta.(*elastic6.Client)
@@ -116,7 +123,9 @@ func testCheckElasticsearchIndexLifecyclePolicyDestroy(s *terraform.State) error
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				}
 			}
 		default:
 			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")

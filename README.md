@@ -1,8 +1,12 @@
 # terraform-provider-elasticsearch
 
-[![Build Status](https://travis-ci.org/phillbaker/terraform-provider-elasticsearch.svg?branch=master)](https://travis-ci.org/phillbaker/terraform-provider-elasticsearch)
+This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
 
-This is a terraform provider that lets you provision elasticsearch resources, compatible with v5, v6 and v7 of elasticsearch. Based off of an [original PR to Terraform](https://github.com/hashicorp/terraform/pull/13238).
+We fork this project for the following items:
+  - use official golang SDK to consume Elasticsearch API: https://github.com/elastic/go-elasticsearch
+  - implement importer in terraform
+  - migrate to terraform standalone SDK
+  - add some resources
 
 ## Installation
 
@@ -18,166 +22,392 @@ See [the docs for more information](https://www.terraform.io/docs/plugins/basics
 
 ## Usage
 
+### Provider
+
+The Elasticsearch provider is used to interact with the
+resources supported by Elasticsearch. The provider needs
+to be configured with an endpoint URL before it can be used.
+
+***Sample:***
 ```tf
 provider "elasticsearch" {
-    url = "https://search-foo-bar-pqrhr4w3u4dzervg41frow4mmy.us-east-1.es.amazonaws.com" # Don't include port at the end for aws
-    aws_access_key = ""
-    aws_secret_key = ""
-    aws_token = "" # if necessary
-    insecure = true # to bypass certificate check
-    cacert_file = "/path/to/ca.crt" # when connecting to elastic with self-signed certificate
-    sign_aws_requests = true # only needs to be true if your domain access policy includes IAM users or roles
+    urls     = "http://elastic.company.com:9200"
+    username = "elastic"
+    password = "changeme"
 }
+```
 
-resource "elasticsearch_index_template" "test" {
+***The following arguments are supported:***
+- **urls**: (required) The list of endpoint Elasticsearch URL, separated by comma.
+- **username**: (optional) The username to connect on it.
+- **password**: (optional) The password to connect on it.
+- **insecure**: (optional) To disable the certificate check.
+- **cacert_file**: (optional) The CA contend to use if you use custom PKI.
+
+___
+
+### Role resource
+
+This resource permit to manage role in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_role" "test" {
   name = "terraform-test"
-  body = <<EOF
+  indices {
+	  names = ["logstash-*"]
+	  privileges = ["read"]
+  }
+  indices {
+	  names = ["logstash-*"]
+	  privileges = ["read2"]
+  }
+  cluster = ["all"]
+}
+```
+
+***The following arguments are supported:***
+  - **name**: (required) The role name to create
+  - **cluster**: (optional) A list of cluster privileges. These privileges define the cluster level actions that users with this role are able to execute.
+  - **run_as**: (optional) A list of users that the owners of this role can impersonate.
+  - **global**: (optional) A string as JSON object defining global privileges. A global privilege is a form of cluster privilege that is request-aware. Support for global privileges is currently limited to the management of application privileges.
+  - **metadata**: (optional) A string as JSON object meta-data. Within the metadata object, keys that begin with _ are reserved for system usage.
+  - **indices**: (optional) A list of indices permissions entries. Look the indice object below.
+  - **applications**: (optional) A list of application privilege entries. Look the application object below.
+
+
+***Indice object***:
+  - **names**: (required) A list of indices (or index name patterns) to which the permissions in this entry apply.
+  - **privileges**: (required) A list of The index level privileges that the owners of the role have on the specified indices.
+  - **query**: (optional) A search query that defines the documents the owners of the role have read access to. A document within the specified indices must match this query in order for it to be accessible by the owners of the role. It's a string or a string as JSON object.
+  - **field_security**: (optional) The document fields that the owners of the role have read access to. It's a string as JSON object
+
+***Application object***:
+  - **application**: (required) The name of the application to which this entry applies.
+  - **privileges**: (optional)  A list of strings, where each element is the name of an application privilege or action.
+  - **resources**: (optional) A list resources to which the privileges are applied.
+
+___
+
+### Role mapping resource
+
+This resource permit to manage role mapping ins Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample***:
+```tf
+resource "elasticsearch_role_mapping" "test" {
+  name = "terraform-test"
+  enabled = "true"
+  roles = ["superuser"]
+  rules = <<EOF
 {
-  "template": "logstash-*",
-  "version": 50001,
-  "settings": {
-    "index.refresh_interval": "5s"
-  },
-  "mappings": {
-    "_default_": {
-      "_all": {"enabled": true, "norms": false},
-      "dynamic_templates": [ {
-        "message_field": {
-          "path_match": "message",
-          "match_mapping_type": "string",
-          "mapping": {
-            "type": "text",
-            "norms": false
+	"field": {
+		"groups": "cn=admins,dc=example,dc=com"
+	}
+}
+EOF
+}
+```
+
+***The following arguments are supported:***
+  - **name:** (required) The distinct name that identifies the role mapping.
+  - **enabled:** (optional) Mappings that have enabled set to false are ignored when role mapping is performed.
+  - **rules**: (required) The rules that determine which users should be matched by the mapping. A rule is a logical condition that is expressed by using a JSON DSL. It's a string as JSON object.
+  - **roles**: (required) A list of role names that are granted to the users that match the role mapping rules.
+  - **metadata:** (optional) Additional metadata that helps define which roles are assigned to each user. It's a string as JSON object.
+
+
+___
+
+### User resource
+
+This resource permit to manage internal user in Elasticsearch.
+You can see the API documenation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_user" "test" {
+  username 	= "terraform-test"
+  enabled 	= "true"
+  email 	= "no@no.no"
+  full_name = "test"
+  password 	= "changeme"
+  roles 	= ["kibana_user"]
+}
+```
+
+***The following arguments are supported:***
+  - **username**: (required) An identifier for the user.
+  - **email**: (required) The email of the user.
+  - **full_name**: (optional) The full name of the user.
+  - **password**: (optional) The user’s password. Passwords must be at least 6 characters long. When adding a user, one of password or password_hash is required.
+  - **password_hash**: (optional) A hash of the user’s password
+  - **enabled**: (optional) Specifies whether the user is enabled
+  - **roles**: (required) A set of roles the user has
+  - **metadata**: (optional) Arbitrary metadata that you want to associate with the user
+
+___
+
+### Index lifecycle policy resource
+
+This resource permit to manage the index lifecycle policy in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_index_lifecycle_policy" "test" {
+  name = "terraform-test"
+  policy = <<EOF
+{
+  "policy": {
+    "phases": {
+      "warm": {
+        "min_age": "10d",
+        "actions": {
+          "forcemerge": {
+            "max_num_segments": 1
           }
         }
-      }, {
-        "string_fields": {
-          "match": "*",
-          "match_mapping_type": "string",
-          "mapping": {
-            "type": "text", "norms": false,
-            "fields": {
-              "keyword": { "type": "keyword" }
+      },
+      "delete": {
+        "min_age": "30d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}
+EOF
+}
+```
+
+***The following arguments are supported:***
+  - **name**: (required) Identifier for the policy.
+  - **policy**: (required) The policy specification. It's a string as JSON object.
+
+___
+
+### Index template resource
+
+This resource permit to manage the index template in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_index_template" "test" {
+  name 		= "terraform-test"
+  template 	= <<EOF
+{
+  "index_patterns": [
+    "test"
+  ],
+  "settings": {
+    "index.refresh_interval": "5s",
+	"index.lifecycle.name": "policy-logstash-backup",
+    "index.lifecycle.rollover_alias": "logstash-backup-alias"
+  },
+  "order": 2
+}
+EOF
+}
+```
+
+***The following arguments are supported:***
+  - **name**: (required) Identifier for the template.
+  - **template**: (required) The template specification. It's a string as JSON object.
+
+___
+
+### License resource
+
+This resource permit to manage license in Elasticsearch.
+You can use enterprise license file or enable basic license.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/update-license.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_license" "test" {
+  use_basic_license = "true"
+}
+```
+
+***The following arguments are supported:***
+  - **license**: (optional) The license contend file.
+  - **use_basic_license**: (required) Set `true` to use basic licence.
+
+___
+
+### Snapshot repository resource
+
+This resource permit to manage snapshot repository in Elasticsearch.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_snapshot_repository" "test" {
+  name		= "terraform-test"
+  type 		= "fs"
+  settings 	= {
+	"location" =  "/tmp"
+  }
+}
+```
+
+***The following arguments are supported:***
+  - **name**: (required) Identifier for the repository.
+  - **type**: (required) The repository type.
+  - **settings**: (required) The list of settings. It's a map of string.
+
+___
+
+### Snapshot lifecycle policy resource
+
+This resource permit to manage snapshot lifecyle policy.
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
+
+***Supported Elasticsearch version:***
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_snapshot_lifecycle_policy" "test" {
+  name			= "terraform-test"
+  snapshot_name = "<daily-snap-{now/d}>"
+  schedule 		= "0 30 1 * * ?"
+  repository    = "${elasticsearch_snapshot_repository.test.name}"
+  configs		= <<EOF
+{
+	"indices": ["test-*"],
+	"ignore_unavailable": false,
+	"include_global_state": false
+}
+EOF
+}
+```
+
+***The following arguments are supported:***
+  - **name**: (required) Identifier for the policy.
+  - **snapshot_name**: (required) A name automatically given to each snapshot performed by this policy.
+  - **schedule**: (required) A periodic or absolute time schedule.
+  - **repository**: (required) The snapshot repository that will contain snapshots created by this policy.
+  - **configs**: (optional) Configuration for each snapshot that will be created by this policy. It's a string as JSON object.
+
+___
+
+### Watcher resource
+
+This resource permit to manage watcher in Elasticsearch
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/watcher-api-put-watch.html
+
+***Supported Elasticsearch version:***
+  - v6
+  - v7
+
+***Sample:***
+```tf
+resource "elasticsearch_watcher" "test" {
+  name		= "terraform-test"
+  trigger	= <<EOF
+{
+	"schedule" : { "cron" : "0 0/1 * * * ?" }
+}
+EOF
+  input		= <<EOF
+{
+	"search" : {
+      "request" : {
+        "indices" : [
+          "logstash*"
+        ],
+        "body" : {
+          "query" : {
+            "bool" : {
+              "must" : {
+                "match": {
+                   "response": 404
+                }
+              },
+              "filter" : {
+                "range": {
+                  "@timestamp": {
+                    "from": "{{ctx.trigger.scheduled_time}}||-5m",
+                    "to": "{{ctx.trigger.triggered_time}}"
+                  }
+                }
+              }
             }
           }
         }
-      } ],
-      "properties": {
-        "@timestamp": { "type": "date", "include_in_all": false },
-        "@version": { "type": "keyword", "include_in_all": false },
-        "geoip" : {
-          "dynamic": true,
-          "properties": {
-            "ip": { "type": "ip" },
-            "location": { "type": "geo_point" },
-            "latitude": { "type": "half_float" },
-            "longitude": { "type": "half_float" }
-          }
-        }
       }
     }
-  }
 }
 EOF
+  condition		= <<EOF
+{
+	"compare" : { "ctx.payload.hits.total" : { "gt" : 0 }}
 }
-
-# A saved search, visualization or dashboard
-resource "elasticsearch_kibana_object" "test_dashboard" {
-  body = "${file("dashboard_path.txt")}"
-}
-
-resource "elasticsearch_kibana_object" "test_visualization_v5" {
-  body = <<EOF
-[
-  {
-    "_id": "response-time-percentile",
-    "_type": "visualization",
-    "_source": {
-      "title": "Total response time percentiles",
-      "visState": "{\"title\":\"Total response time percentiles\",\"type\":\"line\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"showCircles\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"percentiles\",\"schema\":\"metric\",\"params\":{\"field\":\"app.total_time\",\"percents\":[50,90,95]}},{\"id\":\"2\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"system.syslog.program\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"_term\"}}],\"listeners\":{}}",
-      "uiStateJSON": "{}",
-      "description": "",
-      "version": 1,
-      "kibanaSavedObjectMeta": {
-        "searchSourceJSON": "{\"index\":\"filebeat-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
-      }
-    }
-  }
-]
 EOF
-}
-
-resource "elasticsearch_kibana_object" "test_visualization_v6" {
-  body = <<EOF
-[
-  {
-    "_id": "visualization:response-time-percentile",
-    "_type": "doc",
-    "_source": {
-      "type": "visualization",
-      "visualization": {
-        "title": "Total response time percentiles",
-        "visState": "{\"title\":\"Total response time percentiles\",\"type\":\"line\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"showCircles\":true,\"interpolate\":\"linear\",\"scale\":\"linear\",\"drawLinesBetweenPoints\":true,\"radiusRatio\":9,\"times\":[],\"addTimeMarker\":false,\"defaultYExtents\":false,\"setYExtents\":false},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"percentiles\",\"schema\":\"metric\",\"params\":{\"field\":\"app.total_time\",\"percents\":[50,90,95]}},{\"id\":\"2\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"@timestamp\",\"interval\":\"auto\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"group\",\"params\":{\"field\":\"system.syslog.program\",\"size\":5,\"order\":\"desc\",\"orderBy\":\"_term\"}}],\"listeners\":{}}",
-        "uiStateJSON": "{}",
-        "description": "",
-        "version": 1,
-        "kibanaSavedObjectMeta": {
-            "searchSourceJSON": "{\"index\":\"filebeat-*\",\"query\":{\"query_string\":{\"query\":\"*\",\"analyze_wildcard\":true}},\"filter\":[]}"
-        }
+  actions		= <<EOF
+{
+	"email_admin" : {
+      "email" : {
+        "to" : "admin@domain.host.com",
+        "subject" : "404 recently encountered"
       }
     }
-  }
-]
+}
 EOF
 }
 ```
 
-### For use with AWS Elasticsearch domains
+***The following arguments are supported:***
+  - **name**: (required) Identifier for the watcher.
+  - **trigger**: (optional) The trigger that defines when the watch should run. It's a string as JSON object.
+  - **input**: (optional) The input that defines the input that loads the data for the watch. It's a string as JSON object.
+  - **condition**: (optional) The condition that defines if the actions should be run. It's a string as JSON object.
+  - **actions**: (optional) The list of actions that will be run if the condition matches. It's a string as JSOn object.
+  - **throttle_period**: (optional) The minimum time between actions being run.
+  - **metadata**: (optional) Metadata json that will be copied into the history entries. It's a string as JSON object.
 
-The Elasticsearch provider is flexible in the means of providing credentials for authentication with AWS Elasticsearch domains. The following methods are supported, in this order, and explained below:
-
-- Static credentials
-- Environment variables
-- Shared credentials file
-
-#### Static credentials
-
-Static credentials can be provided by adding an `aws_access_key` and `aws_secret_key` in-line in the Elasticsearch provider block. If applicable, you may also specify a `aws_token` value.
-
-Example usage:
-
-```tf
-provider "elasticsearch" {
-    url = "https://search-foo-bar-pqrhr4w3u4dzervg41frow4mmy.us-east-1.es.amazonaws.com"
-    aws_access_key = "anaccesskey"
-    aws_secret_key = "asecretkey"
-    aws_token = "" # if necessary
-}
-```
-
-#### Environment variables
-
-You can provide your credentials via the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, environment variables, representing your AWS Access Key and AWS Secret Key. If applicable, the `AWS_SESSION_TOKEN` environment variables is also supported.
-
-Example usage:
-
-```shell
-$ export AWS_ACCESS_KEY_ID="anaccesskey"
-$ export AWS_SECRET_ACCESS_KEY="asecretkey"
-$ terraform plan
-```
-
-#### Shared Credentials file
-
-You can use an AWS credentials file to specify your credentials. The default location is `$HOME/.aws/credentials` on Linux and macOS, or `%USERPROFILE%\.aws\credentials` for Windows users.
-
-Please refer to the official [userguide](https://docs.aws.amazon.com/cli/latest/userguide/cli-config-files.html) for instructions on how to create the credentials file.
+___
 
 ## Development
 
 ### Requirements
 
 * [Golang](https://golang.org/dl/) >= 1.11
+* [Terrafrom](https://www.terraform.io/) >= 0.12
 
 
 ```
@@ -190,8 +420,11 @@ See LICENSE.
 
 ## Contributing
 
-1. Fork it ( https://github.com/phillbaker/terraform-provider-elasticsearch/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+1. Fork it ( https://github.com/disaster37/terraform-provider-elasticsearch/fork )
+2. Go to develop branch (`git checkout develop`)
+3. Create your feature branch (`git checkout -b my-new-feature`)
+4. Add feature, add acceptance test and tets your code (`make testacc`)
+5. Commit your changes (`git commit -am 'Add some feature'`)
+6. Push to the branch (`git push origin my-new-feature`)
+7. Create a new Pull Request
+

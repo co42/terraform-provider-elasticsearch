@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/sirupsen/logrus"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 )
@@ -45,4 +45,5 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("ELASTICSEARCH_URLS"); v == "" {
 		t.Fatal("ELASTICSEARCH_URLS must be set for acceptance tests")
 	}
+
 }

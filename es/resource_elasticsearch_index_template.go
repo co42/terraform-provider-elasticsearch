@@ -1,13 +1,20 @@
+// Manage index template in Elasticsearch
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
+// Supported version:
+//  - v6
+//  - v7
+
 package es
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
 	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -18,6 +25,11 @@ func resourceElasticsearchIndexTemplate() *schema.Resource {
 		Update: resourceElasticsearchIndexTemplateUpdate,
 		Read:   resourceElasticsearchIndexTemplateRead,
 		Delete: resourceElasticsearchIndexTemplateDelete,
+
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -65,7 +77,14 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			return errors.Errorf("Error when get index template %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index template %s not found - removing from state", id)
+				log.Warnf("Index template %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get index template %s: %s", id, res.String())
+			}
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -84,7 +103,14 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 		}
 		defer res.Body.Close()
 		if res.IsError() {
-			return errors.Errorf("Error when get index template %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index template %s not found - removing from state", id)
+				log.Warnf("Index template %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when get index template %s: %s", id, res.String())
+			}
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -121,7 +147,15 @@ func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta inter
 		defer res.Body.Close()
 
 		if res.IsError() {
-			return errors.Errorf("Error when delete index template %s: %s", id, res.String())
+			if res.StatusCode == 404 {
+				fmt.Printf("[WARN] Index template %s not found - removing from state", id)
+				log.Warnf("Index template %s not found - removing from state", id)
+				d.SetId("")
+				return nil
+			} else {
+				return errors.Errorf("Error when delete index template %s: %s", id, res.String())
+			}
+
 		}
 	case *elastic6.Client:
 		client := meta.(*elastic6.Client)

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool {
@@ -43,6 +43,17 @@ func suppressEquivalentJson(k, old, new string, d *schema.ResourceData) bool {
 		return false
 	}
 	return reflect.DeepEqual(oldObj, newObj)
+}
+
+func suppressLicense(k, old, new string, d *schema.ResourceData) bool {
+	var oldObj, newObj map[string]interface{}
+	if err := json.Unmarshal([]byte(old), &oldObj); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(new), &newObj); err != nil {
+		return false
+	}
+	return reflect.DeepEqual(oldObj["license"], newObj)
 }
 
 func diffSuppressIndexLifecyclePolicy(k, old, new string, d *schema.ResourceData) bool {

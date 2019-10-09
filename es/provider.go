@@ -11,9 +11,9 @@ import (
 
 	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform/helper/pathorcontents"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -54,10 +54,15 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"elasticsearch_index_lifecycle_policy": resourceElasticsearchIndexLifecyclePolicy(),
-			"elasticsearch_index_template":         resourceElasticsearchIndexTemplate(),
-			"elasticsearch_role":                   resourceElasticsearchSecurityRole(),
-			"elasticsearch_role_mapping":           resourceElasticsearchSecurityRoleMapping(),
+			"elasticsearch_index_lifecycle_policy":    resourceElasticsearchIndexLifecyclePolicy(),
+			"elasticsearch_index_template":            resourceElasticsearchIndexTemplate(),
+			"elasticsearch_role":                      resourceElasticsearchSecurityRole(),
+			"elasticsearch_role_mapping":              resourceElasticsearchSecurityRoleMapping(),
+			"elasticsearch_user":                      resourceElasticsearchSecurityUser(),
+			"elasticsearch_license":                   resourceElasticsearchLicense(),
+			"elasticsearch_snapshot_repository":       resourceElasticsearchSnapshotRepository(),
+			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
+			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
 		},
 
 		ConfigureFunc: providerConfigure,

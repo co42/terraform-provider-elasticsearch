@@ -8,8 +8,8 @@ import (
 	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +27,11 @@ func TestAccElasticsearchIndex(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckElasticsearchIndexTemplateExists("elasticsearch_index_template.test"),
 				),
+			},
+			{
+				ResourceName:      "elasticsearch_index_template.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -102,7 +107,9 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				}
 			}
 		case *elastic6.Client:
 			client := meta.(*elastic6.Client)
@@ -116,7 +123,9 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 			}
 			defer res.Body.Close()
 			if res.IsError() {
-				return nil
+				if res.StatusCode == 404 {
+					return nil
+				}
 			}
 		default:
 			return errors.New("Index template is only supported by the elastic library >= v6!")
@@ -130,8 +139,8 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 
 var testElasticsearchIndexTemplate = `
 resource "elasticsearch_index_template" "test" {
-  name = "terraform-test"
-  template = <<EOF
+  name 		= "terraform-test"
+  template 	= <<EOF
 {
   "index_patterns": [
     "test"
