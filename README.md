@@ -28,7 +28,7 @@ The Elasticsearch provider is used to interact with the
 resources supported by Elasticsearch. The provider needs
 to be configured with an endpoint URL before it can be used.
 
-__Sample:__
+***Sample:***
 ```tf
 provider "elasticsearch" {
     urls     = "http://elastic.company.com:9200"
@@ -37,7 +37,7 @@ provider "elasticsearch" {
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
 - **urls**: (required) The list of endpoint Elasticsearch URL, separated by comma.
 - **username**: (optional) The username to connect on it.
 - **password**: (optional) The password to connect on it.
@@ -51,11 +51,11 @@ __The following arguments are supported:__
 This resource permit to manage role in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_role" "test" {
   name = "terraform-test"
@@ -71,7 +71,7 @@ resource "elasticsearch_role" "test" {
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) The role name to create
   - **cluster**: (optional) A list of cluster privileges. These privileges define the cluster level actions that users with this role are able to execute.
   - **run_as**: (optional) A list of users that the owners of this role can impersonate.
@@ -81,13 +81,13 @@ __The following arguments are supported:__
   - **applications**: (optional) A list of application privilege entries. Look the application object below.
 
 
-__Indice object__:
+***Indice object***:
   - **names**: (required) A list of indices (or index name patterns) to which the permissions in this entry apply.
   - **privileges**: (required) A list of The index level privileges that the owners of the role have on the specified indices.
   - **query**: (optional) A search query that defines the documents the owners of the role have read access to. A document within the specified indices must match this query in order for it to be accessible by the owners of the role. It's a string or a string as JSON object.
   - **field_security**: (optional) The document fields that the owners of the role have read access to. It's a string as JSON object
 
-__Application object__:
+***Application object***:
   - **application**: (required) The name of the application to which this entry applies.
   - **privileges**: (optional)  A list of strings, where each element is the name of an application privilege or action.
   - **resources**: (optional) A list resources to which the privileges are applied.
@@ -98,11 +98,11 @@ __Application object__:
 This resource permit to manage role mapping ins Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample__:
+***Sample***:
 ```tf
 resource "elasticsearch_role_mapping" "test" {
   name = "terraform-test"
@@ -118,7 +118,7 @@ EOF
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name:** (required) The distinct name that identifies the role mapping.
   - **enabled:** (optional) Mappings that have enabled set to false are ignored when role mapping is performed.
   - **rules**: (required) The rules that determine which users should be matched by the mapping. A rule is a logical condition that is expressed by using a JSON DSL. It's a string as JSON object.
@@ -131,11 +131,11 @@ __The following arguments are supported:__
 This resource permit to manage internal user in Elasticsearch.
 You can see the API documenation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_user" "test" {
   username 	= "terraform-test"
@@ -147,7 +147,7 @@ resource "elasticsearch_user" "test" {
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **username**: (required) An identifier for the user.
   - **email**: (required) The email of the user.
   - **full_name**: (optional) The full name of the user.
@@ -162,11 +162,11 @@ __The following arguments are supported:__
 This resource permit to manage the index lifecycle policy in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_index_lifecycle_policy" "test" {
   name = "terraform-test"
@@ -195,7 +195,7 @@ EOF
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) Identifier for the policy.
   - **policy**: (required) The policy specification. It's a string as JSON object.
 
@@ -204,11 +204,11 @@ __The following arguments are supported:__
 This resource permit to manage the index template in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_index_template" "test" {
   name 		= "terraform-test"
@@ -228,7 +228,7 @@ EOF
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) Identifier for the template.
   - **template**: (required) The template specification. It's a string as JSON object.
 
@@ -238,18 +238,18 @@ This resource permit to manage license in Elasticsearch.
 You can use enterprise license file or enable basic license.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/update-license.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_license" "test" {
   use_basic_license = "true"
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **license**: (optional) The license contend file.
   - **use_basic_license**: (required) Set `true` to use basic licence.
 
@@ -258,11 +258,11 @@ __The following arguments are supported:__
 This resource permit to manage snapshot repository in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_snapshot_repository" "test" {
   name		= "terraform-test"
@@ -273,7 +273,7 @@ resource "elasticsearch_snapshot_repository" "test" {
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) Identifier for the repository.
   - **type**: (required) The repository type.
   - **settings**: (required) The list of settings. It's a map of string.
@@ -283,10 +283,10 @@ __The following arguments are supported:__
 This resource permit to manage snapshot lifecyle policy.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_snapshot_lifecycle_policy" "test" {
   name			= "terraform-test"
@@ -303,7 +303,7 @@ EOF
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) Identifier for the policy.
   - **snapshot_name**: (required) A name automatically given to each snapshot performed by this policy.
   - **schedule**: (required) A periodic or absolute time schedule.
@@ -316,11 +316,11 @@ __The following arguments are supported:__
 This resource permit to manage watcher in Elasticsearch
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/watcher-api-put-watch.html
 
-__Supported Elasticsearch version:__
+***Supported Elasticsearch version:***
   - v6
   - v7
 
-__Sample:__
+***Sample:***
 ```tf
 resource "elasticsearch_watcher" "test" {
   name		= "terraform-test"
@@ -377,7 +377,7 @@ EOF
 }
 ```
 
-__The following arguments are supported:__
+***The following arguments are supported:***
   - **name**: (required) Identifier for the watcher.
   - **trigger**: (optional) The trigger that defines when the watch should run. It's a string as JSON object.
   - **input**: (optional) The input that defines the input that loads the data for the watch. It's a string as JSON object.
