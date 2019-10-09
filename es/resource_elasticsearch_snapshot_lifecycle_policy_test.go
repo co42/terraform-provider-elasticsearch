@@ -9,8 +9,8 @@ import (
 
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
 )
 

@@ -14,7 +14,7 @@ import (
 
 	elastic6 "github.com/elastic/go-elasticsearch/v6"
 	elastic7 "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
