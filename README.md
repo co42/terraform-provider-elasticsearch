@@ -44,6 +44,7 @@ provider "elasticsearch" {
 - **insecure**: (optional) To disable the certificate check.
 - **cacert_file**: (optional) The CA contend to use if you use custom PKI.
 
+___
 
 ### Role resource
 
@@ -91,6 +92,7 @@ resource "elasticsearch_role" "test" {
   - **privileges**: (optional)  A list of strings, where each element is the name of an application privilege or action.
   - **resources**: (optional) A list resources to which the privileges are applied.
 
+___
 
 ### Role mapping resource
 
@@ -125,6 +127,8 @@ EOF
   - **metadata:** (optional) Additional metadata that helps define which roles are assigned to each user. It's a string as JSON object.
 
 
+___
+
 ### User resource
 
 This resource permit to manage internal user in Elasticsearch.
@@ -155,6 +159,8 @@ resource "elasticsearch_user" "test" {
   - **enabled**: (optional) Specifies whether the user is enabled
   - **roles**: (required) A set of roles the user has
   - **metadata**: (optional) Arbitrary metadata that you want to associate with the user
+
+___
 
 ### Index lifecycle policy resource
 
@@ -198,6 +204,8 @@ EOF
   - **name**: (required) Identifier for the policy.
   - **policy**: (required) The policy specification. It's a string as JSON object.
 
+___
+
 ### Index template resource
 
 This resource permit to manage the index template in Elasticsearch.
@@ -231,6 +239,8 @@ EOF
   - **name**: (required) Identifier for the template.
   - **template**: (required) The template specification. It's a string as JSON object.
 
+___
+
 ### License resource
 
 This resource permit to manage license in Elasticsearch.
@@ -251,6 +261,8 @@ resource "elasticsearch_license" "test" {
 ***The following arguments are supported:***
   - **license**: (optional) The license contend file.
   - **use_basic_license**: (required) Set `true` to use basic licence.
+
+___
 
 ### Snapshot repository resource
 
@@ -276,6 +288,8 @@ resource "elasticsearch_snapshot_repository" "test" {
   - **name**: (required) Identifier for the repository.
   - **type**: (required) The repository type.
   - **settings**: (required) The list of settings. It's a map of string.
+
+___
 
 ### Snapshot lifecycle policy resource
 
@@ -309,6 +323,7 @@ EOF
   - **repository**: (required) The snapshot repository that will contain snapshots created by this policy.
   - **configs**: (optional) Configuration for each snapshot that will be created by this policy. It's a string as JSON object.
 
+___
 
 ### Watcher resource
 
@@ -384,6 +399,8 @@ EOF
   - **actions**: (optional) The list of actions that will be run if the condition matches. It's a string as JSOn object.
   - **throttle_period**: (optional) The minimum time between actions being run.
   - **metadata**: (optional) Metadata json that will be copied into the history entries. It's a string as JSON object.
+
+___
 
 ## Development
 
