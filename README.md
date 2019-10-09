@@ -1,8 +1,12 @@
 # terraform-provider-elasticsearch
 
-
-
 This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
+
+We fork this project for the following items:
+  - use official golang SDK to consume Elasticsearch API: https://github.com/elastic/go-elasticsearch
+  - implement importer in terraform
+  - migrate to terraform standalone SDK
+  - add some resources
 
 ## Installation
 
