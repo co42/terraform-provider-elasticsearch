@@ -52,11 +52,15 @@ func resourceElasticsearchIndexTemplateCreate(d *schema.ResourceData, meta inter
 		return err
 	}
 	d.SetId(d.Get("name").(string))
-	return nil
+	return resourceElasticsearchIndexTemplateRead(d, meta)
 }
 
 func resourceElasticsearchIndexTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return createIndexTemplate(d, meta)
+	err := createIndexTemplate(d, meta)
+	if err != nil {
+		return err
+	}
+	return resourceElasticsearchIndexTemplateRead(d, meta)
 }
 
 func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interface{}) error {
