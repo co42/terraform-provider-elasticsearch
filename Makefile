@@ -5,7 +5,7 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 
 default: build
 
-build: fmtcheck
+build: fmt fmtcheck
 	go install
 
 gen:
