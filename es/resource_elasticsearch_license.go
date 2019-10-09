@@ -70,7 +70,7 @@ func resourceElasticsearchLicenseUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) error {
 
-	var body string
+	var b []byte
 
 	// Use the right client depend to Elasticsearch version
 	switch meta.(type) {
@@ -96,11 +96,10 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		body = string(b)
 	// V7
 	case *elastic7.Client:
 		client := meta.(*elastic7.Client)
@@ -123,23 +122,30 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		body = string(b)
 	default:
 		return errors.New("License is only supported by the elastic library >= v6!")
 	}
 
-	log.Debugf("Get license successfully:\n%s", body)
+	log.Debugf("Get license successfully:\n%s", string(b))
 
-	if d.Get("use_basic_license").(bool) == true {
-		d.Set("basic_license", body)
-	} else {
-		d.Set("license", body)
+	license := make(map[string]interface{})
+	err := json.Unmarshal(b, &license)
+	if err != nil {
+		return err
 	}
-	d.Set("use_basic_license", d.Get("use_basic_license").(bool))
+
+	licenseSpec := license["license"].(map[string]interface{})
+	if licenseSpec["type"].(string) == "basic" {
+		d.Set("basic_license", string(b))
+		d.Set("use_basic_license", true)
+	} else {
+		d.Set("license", string(b))
+		d.Set("use_basic_license", false)
+	}
 
 	return nil
 }

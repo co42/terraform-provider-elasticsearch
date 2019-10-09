@@ -62,6 +62,7 @@ func Provider() terraform.ResourceProvider {
 			"elasticsearch_license":                   resourceElasticsearchLicense(),
 			"elasticsearch_snapshot_repository":       resourceElasticsearchSnapshotRepository(),
 			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
+			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
 		},
 
 		ConfigureFunc: providerConfigure,

@@ -43,7 +43,7 @@ func testCheckElasticsearchSnapshotRepositoryExists(name string) resource.TestCh
 			return fmt.Errorf("Not found: %s", name)
 		}
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No user ID is set")
+			return fmt.Errorf("No snapshot repository ID is set")
 		}
 
 		meta := testAccProvider.Meta()

@@ -28,9 +28,10 @@ func TestAccElasticsearchSecurityUser(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "elasticsearch_user.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "elasticsearch_user.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"metadata", "password", "password_hash"},
 			},
 		},
 	})
