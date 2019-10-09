@@ -44,9 +44,8 @@ provider "elasticsearch" {
 - **insecure**: (optional) To disable the certificate check.
 - **cacert_file**: (optional) The CA contend to use if you use custom PKI.
 
-### Resources
 
-#### Role
+### Role resource
 
 This resource permit to manage role in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role.html
@@ -93,7 +92,7 @@ resource "elasticsearch_role" "test" {
   - **resources**: (optional) A list resources to which the privileges are applied.
 
 
-#### Role mapping
+### Role mapping resource
 
 This resource permit to manage role mapping ins Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-role-mapping.html
@@ -126,7 +125,7 @@ EOF
   - **metadata:** (optional) Additional metadata that helps define which roles are assigned to each user. It's a string as JSON object.
 
 
-#### User
+### User resource
 
 This resource permit to manage internal user in Elasticsearch.
 You can see the API documenation: https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-put-user.html
@@ -157,7 +156,7 @@ resource "elasticsearch_user" "test" {
   - **roles**: (required) A set of roles the user has
   - **metadata**: (optional) Arbitrary metadata that you want to associate with the user
 
-#### Index lifecycle policy
+### Index lifecycle policy resource
 
 This resource permit to manage the index lifecycle policy in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-put-lifecycle.html
@@ -199,7 +198,7 @@ EOF
   - **name**: (required) Identifier for the policy.
   - **policy**: (required) The policy specification. It's a string as JSON object.
 
-#### Index template
+### Index template resource
 
 This resource permit to manage the index template in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
@@ -232,7 +231,7 @@ EOF
   - **name**: (required) Identifier for the template.
   - **template**: (required) The template specification. It's a string as JSON object.
 
-#### License
+### License resource
 
 This resource permit to manage license in Elasticsearch.
 You can use enterprise license file or enable basic license.
@@ -253,7 +252,7 @@ resource "elasticsearch_license" "test" {
   - **license**: (optional) The license contend file.
   - **use_basic_license**: (required) Set `true` to use basic licence.
 
-#### Snapshot repository
+### Snapshot repository resource
 
 This resource permit to manage snapshot repository in Elasticsearch.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html
@@ -278,7 +277,7 @@ resource "elasticsearch_snapshot_repository" "test" {
   - **type**: (required) The repository type.
   - **settings**: (required) The list of settings. It's a map of string.
 
-#### Elasticsearch snapshot lifecycle policy
+### Snapshot lifecycle policy resource
 
 This resource permit to manage snapshot lifecyle policy.
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
@@ -311,7 +310,7 @@ EOF
   - **configs**: (optional) Configuration for each snapshot that will be created by this policy. It's a string as JSON object.
 
 
-#### Watcher
+### Watcher resource
 
 This resource permit to manage watcher in Elasticsearch
 You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/watcher-api-put-watch.html
