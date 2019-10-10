@@ -56,8 +56,12 @@ func suppressLicense(k, old, new string, d *schema.ResourceData) bool {
 
 	// Remove field status to compare
 	delete(oldObj["license"].(map[string]interface{}), "status")
+	delete(oldObj["license"].(map[string]interface{}), "issue_date")
+	delete(oldObj["license"].(map[string]interface{}), "expiry_date")
 
-	return reflect.DeepEqual(oldObj["license"], newObj)
+	delete(newObj["license"].(map[string]interface{}), "signature")
+
+	return reflect.DeepEqual(oldObj, newObj)
 }
 
 func diffSuppressIndexLifecyclePolicy(k, old, new string, d *schema.ResourceData) bool {
