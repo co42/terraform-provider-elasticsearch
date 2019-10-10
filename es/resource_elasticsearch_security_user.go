@@ -51,7 +51,7 @@ func resourceElasticsearchSecurityUser() *schema.Resource {
 			},
 			"email": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"full_name": {
 				Type:     schema.TypeString,
