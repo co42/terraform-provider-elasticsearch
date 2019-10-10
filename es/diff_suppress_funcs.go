@@ -53,6 +53,10 @@ func suppressLicense(k, old, new string, d *schema.ResourceData) bool {
 	if err := json.Unmarshal([]byte(new), &newObj); err != nil {
 		return false
 	}
+
+	// Remove field status to compare
+	delete(oldObj["license"].(map[string]interface{}), "status")
+
 	return reflect.DeepEqual(oldObj["license"], newObj)
 }
 
