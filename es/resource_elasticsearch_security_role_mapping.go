@@ -20,7 +20,7 @@ import (
 )
 
 // Role mapping object
-type RoleMapping map[string]RoleMappingSpec
+type RoleMapping map[string]*RoleMappingSpec
 type RoleMappingSpec struct {
 	Roles    []string    `json:"roles"`
 	Enabled  bool        `json:"enabled"`

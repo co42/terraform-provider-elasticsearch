@@ -20,7 +20,7 @@ import (
 )
 
 // Snapshot repository object
-type SnapshotRepository map[string]SnapshotRepositorySpec
+type SnapshotRepository map[string]*SnapshotRepositorySpec
 type SnapshotRepositorySpec struct {
 	Type     string            `json:"type"`
 	Settings map[string]string `json:"settings"`

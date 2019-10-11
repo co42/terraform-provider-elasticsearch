@@ -425,7 +425,7 @@ See LICENSE.
 1. Fork it ( https://github.com/disaster37/terraform-provider-elasticsearch/fork )
 2. Go to develop branch (`git checkout develop`)
 3. Create your feature branch (`git checkout -b my-new-feature`)
-4. Add feature, add acceptance test and tets your code (`make testacc`)
+4. Add feature, add acceptance test and tets your code (`ELASTICSEARCH_URLS=http://127.0.0.1:9200 ELASTICSEARCH_USERNAME=elastic ELASTICSEARCH_PASSWORD=changeme make testacc`)
 5. Commit your changes (`git commit -am 'Add some feature'`)
 6. Push to the branch (`git push origin my-new-feature`)
 7. Create a new Pull Request

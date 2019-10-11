@@ -20,7 +20,7 @@ import (
 )
 
 // User Json object
-type User map[string]UserSpec
+type User map[string]*UserSpec
 type UserSpec struct {
 	Enabled      bool        `json:"enabled"`
 	Email        string      `json:"email"`

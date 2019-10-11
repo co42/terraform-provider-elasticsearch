@@ -18,7 +18,7 @@ import (
 )
 
 // Snapshot repository object
-type SnapshotLifecyclePolicy map[string]SnapshotLifecyclePolicyGet
+type SnapshotLifecyclePolicy map[string]*SnapshotLifecyclePolicyGet
 type SnapshotLifecyclePolicySpec struct {
 	Schedule   string      `json:"schedule"`
 	Name       string      `json:"name"`
