@@ -29,9 +29,10 @@ func TestAccElasticsearchIndexLifecyclePolicy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "elasticsearch_index_lifecycle_policy.test",
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "elasticsearch_index_lifecycle_policy.test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"policy"},
 			},
 		},
 	})
