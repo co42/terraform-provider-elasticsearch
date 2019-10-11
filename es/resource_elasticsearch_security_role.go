@@ -20,7 +20,7 @@ import (
 )
 
 // Role Json object
-type Role map[string]RoleSpec
+type Role map[string]*RoleSpec
 type RoleSpec struct {
 	Cluster      []string                    `json:"cluster"`
 	Applications []RoleApplicationPrivileges `json:"applications,omitempty"`
