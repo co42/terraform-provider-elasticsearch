@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	log "github.com/sirupsen/logrus"
 )
 
 func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool {
@@ -46,20 +47,21 @@ func suppressEquivalentJson(k, old, new string, d *schema.ResourceData) bool {
 }
 
 func suppressLicense(k, old, new string, d *schema.ResourceData) bool {
-	var oldObj, newObj map[string]interface{}
-	if err := json.Unmarshal([]byte(old), &oldObj); err != nil {
+
+	oldObj := &LicenseSpec{}
+	newObjTemp := make(License)
+	if err := json.Unmarshal([]byte(old), oldObj); err != nil {
 		return false
 	}
-	if err := json.Unmarshal([]byte(new), &newObj); err != nil {
+	if err := json.Unmarshal([]byte(new), &newObjTemp); err != nil {
 		return false
 	}
+	newObj := newObjTemp["license"]
 
-	// Remove field status to compare
-	delete(oldObj["license"].(map[string]interface{}), "status")
-	delete(oldObj["license"].(map[string]interface{}), "issue_date")
-	delete(oldObj["license"].(map[string]interface{}), "expiry_date")
+	newObj.Signature = ""
+	oldObj.Signature = ""
 
-	delete(newObj["license"].(map[string]interface{}), "signature")
+	log.Debugf("Old: %s\nNew: %s", oldObj, newObj)
 
 	return reflect.DeepEqual(oldObj, newObj)
 }

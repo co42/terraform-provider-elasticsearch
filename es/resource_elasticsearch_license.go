@@ -21,6 +21,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Licence object
+type License map[string]*LicenseSpec
+type LicenseSpec struct {
+	UID                string  `json:"uid"`
+	Type               string  `json:"type"`
+	IssueDateInMillis  float64 `json:"issue_date_in_millis"`
+	ExpiryDateInMillis float64 `json:"expiry_date_in_millis"`
+	MaxNodes           float64 `json:"max_nodes"`
+	IssuedTo           string  `json:"issued_to"`
+	Issuer             string  `json:"issuer"`
+	Signature          string  `json:"signature,omitempty"`
+	StartDateInMillis  float64 `json:"start_date_in_millis"`
+}
+
 func resourceElasticsearchLicense() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchLicenseCreate,
@@ -132,18 +146,21 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 
 	log.Debugf("Get license successfully:\n%s", string(b))
 
-	license := make(map[string]interface{})
+	license := make(License)
 	err := json.Unmarshal(b, &license)
 	if err != nil {
 		return err
 	}
 
-	licenseSpec := license["license"].(map[string]interface{})
-	if licenseSpec["type"].(string) == "basic" {
-		d.Set("basic_license", string(b))
+	licenseSpec := license["license"]
+
+	log.Debugf("License object: %s", licenseSpec.String())
+
+	if licenseSpec.Type == "basic" {
+		d.Set("basic_license", licenseSpec.String())
 		d.Set("use_basic_license", true)
 	} else {
-		d.Set("license", string(b))
+		d.Set("license", licenseSpec.String())
 		d.Set("use_basic_license", false)
 	}
 
@@ -346,4 +363,10 @@ func createLicense(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+// Print License object as Json string
+func (r *LicenseSpec) String() string {
+	json, _ := json.Marshal(r)
+	return string(json)
 }
