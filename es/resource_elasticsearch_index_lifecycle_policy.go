@@ -8,6 +8,7 @@ package es
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -39,7 +40,7 @@ func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: diffSuppressIndexLifecyclePolicy,
+				DiffSuppressFunc: suppressEquivalentJson,
 			},
 		},
 	}
@@ -65,7 +66,7 @@ func resourceElasticsearchIndexLifecyclePolicyUpdate(d *schema.ResourceData, met
 func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
-	var body string
+	var b []byte
 
 	switch meta.(type) {
 	case *elastic7.Client:
@@ -89,11 +90,10 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 			}
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		body = string(b)
 	case *elastic6.Client:
 		client := meta.(*elastic6.Client)
 		res, err := client.API.ILM.GetLifecycle(
@@ -115,18 +115,27 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 			}
 		}
-		b, err := ioutil.ReadAll(res.Body)
+		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		body = string(b)
 	default:
 		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
 	}
 
-	log.Debugf("Get life cycle policy %s successfully:\n%s", id, body)
-	d.Set("name", d.Id())
-	d.Set("policy", body)
+	log.Debugf("Get life cycle policy %s successfully:\n%s", id, string(b))
+
+	policyTemp := make(map[string]interface{})
+	err := json.Unmarshal(b, &policyTemp)
+	if err != nil {
+		return err
+	}
+	policy := policyTemp[id].(map[string]interface{})["policy"]
+
+	log.Debugf("Policy : %+v", policy)
+
+	d.Set("name", id)
+	d.Set("policy", policy)
 	return nil
 }
 
