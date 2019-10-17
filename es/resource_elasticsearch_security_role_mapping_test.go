@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v6"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
@@ -49,40 +48,18 @@ func testCheckElasticsearchSecurityRoleMappingExists(name string) resource.TestC
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetRoleMapping(
-				client.API.XPack.SecurityGetRoleMapping.WithContext(context.Background()),
-				client.API.XPack.SecurityGetRoleMapping.WithPretty(),
-				client.API.XPack.SecurityGetRoleMapping.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get role mapping %s: %s", rs.Primary.ID, res.String())
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetRoleMapping(
-				client.API.Security.GetRoleMapping.WithContext(context.Background()),
-				client.API.Security.GetRoleMapping.WithPretty(),
-				client.API.Security.GetRoleMapping.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get role mapping %s: %s", rs.Primary.ID, res.String())
-			}
-		default:
-			return errors.New("Role mapping is only supported by the elastic library >= v6")
+		client := meta.(*elastic.Client)
+		res, err := client.API.XPack.SecurityGetRoleMapping(
+			client.API.XPack.SecurityGetRoleMapping.WithContext(context.Background()),
+			client.API.XPack.SecurityGetRoleMapping.WithPretty(),
+			client.API.XPack.SecurityGetRoleMapping.WithName(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get role mapping %s: %s", rs.Primary.ID, res.String())
 		}
 
 		return nil
@@ -97,44 +74,20 @@ func testCheckElasticsearchSecurityRoleMappingDestroy(s *terraform.State) error 
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetRoleMapping(
-				client.API.XPack.SecurityGetRoleMapping.WithContext(context.Background()),
-				client.API.XPack.SecurityGetRoleMapping.WithPretty(),
-				client.API.XPack.SecurityGetRoleMapping.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
+		client := meta.(*elastic.Client)
+		res, err := client.API.XPack.SecurityGetRoleMapping(
+			client.API.XPack.SecurityGetRoleMapping.WithContext(context.Background()),
+			client.API.XPack.SecurityGetRoleMapping.WithPretty(),
+			client.API.XPack.SecurityGetRoleMapping.WithName(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				return nil
 			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetRoleMapping(
-				client.API.Security.GetRoleMapping.WithContext(context.Background()),
-				client.API.Security.GetRoleMapping.WithPretty(),
-				client.API.Security.GetRoleMapping.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		default:
-			return errors.New("Role mapping is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Role mapping %q still exists", rs.Primary.ID)

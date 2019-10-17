@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 
+	elastic "github.com/elastic/go-elasticsearch/v6"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -53,15 +55,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"elasticsearch_index_lifecycle_policy":    resourceElasticsearchIndexLifecyclePolicy(),
-			"elasticsearch_index_template":            resourceElasticsearchIndexTemplate(),
-			"elasticsearch_role":                      resourceElasticsearchSecurityRole(),
-			"elasticsearch_role_mapping":              resourceElasticsearchSecurityRoleMapping(),
-			"elasticsearch_user":                      resourceElasticsearchSecurityUser(),
-			"elasticsearch_license":                   resourceElasticsearchLicense(),
-			"elasticsearch_snapshot_repository":       resourceElasticsearchSnapshotRepository(),
-			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
-			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
+			"elasticsearch_index_lifecycle_policy": resourceElasticsearchIndexLifecyclePolicy(),
+			"elasticsearch_index_template":         resourceElasticsearchIndexTemplate(),
+			"elasticsearch_role":                   resourceElasticsearchSecurityRole(),
+			"elasticsearch_role_mapping":           resourceElasticsearchSecurityRoleMapping(),
+			"elasticsearch_user":                   resourceElasticsearchSecurityUser(),
+			"elasticsearch_license":                resourceElasticsearchLicense(),
+			"elasticsearch_snapshot_repository":    resourceElasticsearchSnapshotRepository(),
+			"elasticsearch_watcher":                resourceElasticsearchWatcher(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -72,8 +73,7 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	var (
-		relevantClient interface{}
-		data           map[string]interface{}
+		data map[string]interface{}
 	)
 
 	URLs := strings.Split(d.Get("urls").(string), ",")
@@ -134,8 +134,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	version := data["version"].(map[string]interface{})["number"].(string)
 	log.Debugf("Server: %s", version)
 
-	if version < "7.0.0" {
-		return nil, errors.New("ElasticSearch is older than 7.0.0 (%s), you need to use the right version of elasticsearch provider", version)
+	if version < "6.0.0" || version >= "7.0.0" {
+		return nil, errors.Errorf("ElasticSearch version is not 6.x (%s), you need to use the right version of elasticsearch provider", version)
 	}
 
 	return client, nil
