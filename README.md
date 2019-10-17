@@ -1,8 +1,9 @@
 # terraform-provider-elasticsearch
 
 [![CircleCI](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master.svg?style=svg)](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master)
-[![Go Report Card](https://goreportcard.com/badge/github.com/disaster37/terrafrom-provider-elasticsearch)](https://goreportcard.com/report/github.com/disaster37/terrafrom-provider-elasticsearch)
-[![GoDoc](https://godoc.org/github.com/disaster37/terrafrom-provider-elasticsearch?status.svg)](http://godoc.org/github.com/disaster37/terrafrom-provider-elasticsearch)
+[![Go Report Card](https://goreportcard.com/badge/github.com/disaster37/terraform-provider-elasticsearch)](https://goreportcard.com/report/github.com/disaster37/terraform-provider-elasticsearch)
+[![GoDoc](https://godoc.org/github.com/disaster37/terraform-provider-elasticsearch?status.svg)](http://godoc.org/github.com/disaster37/terraform-provider-elasticsearch)
+[![codecov](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch)
 
 This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
 
