@@ -13,8 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -173,72 +172,37 @@ func resourceElasticsearchSecurityRoleCreate(d *schema.ResourceData, meta interf
 func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
-	var b []byte
 
 	log.Debugf("Role id:  %s", id)
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.SecurityGetRole(
-			client.API.XPack.SecurityGetRole.WithContext(context.Background()),
-			client.API.XPack.SecurityGetRole.WithPretty(),
-			client.API.XPack.SecurityGetRole.WithName(id),
-		)
-		if err != nil {
-			return err
+	client := meta.(*elastic.Client)
+	res, err := client.API.Security.GetRole(
+		client.API.Security.GetRole.WithContext(context.Background()),
+		client.API.Security.GetRole.WithPretty(),
+		client.API.Security.GetRole.WithName(id),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Role %s not found - removing from state", id)
+			log.Warnf("Role %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Role %s not found - removing from state", id)
-				log.Warnf("Role %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get role %s: %s", id, res.String())
+		return errors.Errorf("Error when get role %s: %s", id, res.String())
 
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Security.GetRole(
-			client.API.Security.GetRole.WithContext(context.Background()),
-			client.API.Security.GetRole.WithPretty(),
-			client.API.Security.GetRole.WithName(id),
-		)
-		if err != nil {
-			return err
-		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Role %s not found - removing from state", id)
-				log.Warnf("Role %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get role %s: %s", id, res.String())
-
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New("Role is only supported by the elastic library >= v6")
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("Get role %s successfully:\n%s", id, string(b))
 	role := make(Role)
-	err := json.Unmarshal(b, &role)
+	err = json.Unmarshal(b, &role)
 	if err != nil {
 		return err
 	}
@@ -276,62 +240,28 @@ func resourceElasticsearchSecurityRoleDelete(d *schema.ResourceData, meta interf
 	id := d.Id()
 	log.Debugf("Role id: %s", id)
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.SecurityDeleteRole(
-			id,
-			client.API.XPack.SecurityDeleteRole.WithContext(context.Background()),
-			client.API.XPack.SecurityDeleteRole.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.Security.DeleteRole(
+		id,
+		client.API.Security.DeleteRole.WithContext(context.Background()),
+		client.API.Security.DeleteRole.WithPretty(),
+	)
 
-		if err != nil {
-			return err
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Role %s not found - removing from state", id)
+			log.Warnf("Role %s not found - removing from state", id)
+			d.SetId("")
+			return nil
+
 		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Role %s not found - removing from state", id)
-				log.Warnf("Role %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-
-			}
-			return errors.Errorf("Error when delete role %s: %s", id, res.String())
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Security.DeleteRole(
-			id,
-			client.API.Security.DeleteRole.WithContext(context.Background()),
-			client.API.Security.DeleteRole.WithPretty(),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Role %s not found - removing from state", id)
-				log.Warnf("Role %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-
-			}
-			return errors.Errorf("Error when delete role %s: %s", id, res.String())
-		}
-
-	default:
-		return errors.New("Role is only supported by the elastic library >= v6")
+		return errors.Errorf("Error when delete role %s: %s", id, res.String())
 	}
 
 	d.SetId("")
@@ -373,49 +303,22 @@ func createRole(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.SecurityPutRole(
-			name,
-			bytes.NewReader(data),
-			client.API.XPack.SecurityPutRole.WithContext(context.Background()),
-			client.API.XPack.SecurityPutRole.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.Security.PutRole(
+		name,
+		bytes.NewReader(data),
+		client.API.Security.PutRole.WithContext(context.Background()),
+		client.API.Security.PutRole.WithPretty(),
+	)
 
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		defer res.Body.Close()
+	defer res.Body.Close()
 
-		if res.IsError() {
-			return errors.Errorf("Error when add role %s: %s", name, res.String())
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Security.PutRole(
-			name,
-			bytes.NewReader(data),
-			client.API.Security.PutRole.WithContext(context.Background()),
-			client.API.Security.PutRole.WithPretty(),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			return errors.Errorf("Error when add role %s: %s", name, res.String())
-		}
-	default:
-		return errors.New("Role is only supported by the elastic library >= v6")
+	if res.IsError() {
+		return errors.Errorf("Error when add role %s: %s", name, res.String())
 	}
 
 	return nil

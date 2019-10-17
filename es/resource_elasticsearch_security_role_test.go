@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
@@ -49,40 +48,18 @@ func testCheckElasticsearchSecurityRoleExists(name string) resource.TestCheckFun
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetRole(
-				client.API.XPack.SecurityGetRole.WithContext(context.Background()),
-				client.API.XPack.SecurityGetRole.WithPretty(),
-				client.API.XPack.SecurityGetRole.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get security role %s: %s", rs.Primary.ID, res.String())
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetRole(
-				client.API.Security.GetRole.WithContext(context.Background()),
-				client.API.Security.GetRole.WithPretty(),
-				client.API.Security.GetRole.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get security role %s: %s", rs.Primary.ID, res.String())
-			}
-		default:
-			return errors.New("Security role is only supported by the elastic library >= v6")
+		client := meta.(*elastic.Client)
+		res, err := client.API.Security.GetRole(
+			client.API.Security.GetRole.WithContext(context.Background()),
+			client.API.Security.GetRole.WithPretty(),
+			client.API.Security.GetRole.WithName(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get security role %s: %s", rs.Primary.ID, res.String())
 		}
 
 		return nil
@@ -97,44 +74,20 @@ func testCheckElasticsearchSecurityRoleDestroy(s *terraform.State) error {
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetRole(
-				client.API.XPack.SecurityGetRole.WithContext(context.Background()),
-				client.API.XPack.SecurityGetRole.WithPretty(),
-				client.API.XPack.SecurityGetRole.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
+		client := meta.(*elastic.Client)
+		res, err := client.API.Security.GetRole(
+			client.API.Security.GetRole.WithContext(context.Background()),
+			client.API.Security.GetRole.WithPretty(),
+			client.API.Security.GetRole.WithName(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				return nil
 			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetRole(
-				client.API.Security.GetRole.WithContext(context.Background()),
-				client.API.Security.GetRole.WithPretty(),
-				client.API.Security.GetRole.WithName(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		default:
-			return errors.New("Security role is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Security role %q still exists", rs.Primary.ID)

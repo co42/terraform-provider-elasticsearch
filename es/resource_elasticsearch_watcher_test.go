@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
@@ -49,41 +48,18 @@ func testCheckElasticsearchWatcherExists(name string) resource.TestCheckFunc {
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.WatcherGetWatch(
-				rs.Primary.ID,
-				client.API.XPack.WatcherGetWatch.WithContext(context.Background()),
-				client.API.XPack.WatcherGetWatch.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get watcher %s: %s", rs.Primary.ID, res.String())
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Watcher.GetWatch(
-				rs.Primary.ID,
-				client.API.Watcher.GetWatch.WithContext(context.Background()),
-				client.API.Watcher.GetWatch.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get watcher %s: %s", rs.Primary.ID, res.String())
-			}
-
-		default:
-			return errors.New("Watcher is only supported by the elastic library >= v6")
+		client := meta.(*elastic.Client)
+		res, err := client.API.Watcher.GetWatch(
+			rs.Primary.ID,
+			client.API.Watcher.GetWatch.WithContext(context.Background()),
+			client.API.Watcher.GetWatch.WithPretty(),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get watcher %s: %s", rs.Primary.ID, res.String())
 		}
 
 		return nil
@@ -98,44 +74,20 @@ func testCheckElasticsearchWatcherDestroy(s *terraform.State) error {
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.WatcherGetWatch(
-				rs.Primary.ID,
-				client.API.XPack.WatcherGetWatch.WithContext(context.Background()),
-				client.API.XPack.WatcherGetWatch.WithPretty(),
-			)
-			if err != nil {
-				return err
+		client := meta.(*elastic.Client)
+		res, err := client.API.Watcher.GetWatch(
+			rs.Primary.ID,
+			client.API.Watcher.GetWatch.WithContext(context.Background()),
+			client.API.Watcher.GetWatch.WithPretty(),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				return nil
 			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Watcher.GetWatch(
-				rs.Primary.ID,
-				client.API.Watcher.GetWatch.WithContext(context.Background()),
-				client.API.Watcher.GetWatch.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		default:
-			return errors.New("Watcher is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Watcher %q still exists", rs.Primary.ID)

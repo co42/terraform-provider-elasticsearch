@@ -13,8 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -106,72 +105,37 @@ func resourceElasticsearchWatcherCreate(d *schema.ResourceData, meta interface{}
 func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
-	var b []byte
 
 	log.Debugf("Watcher id:  %s", id)
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.WatcherGetWatch(
-			id,
-			client.API.XPack.WatcherGetWatch.WithContext(context.Background()),
-			client.API.XPack.WatcherGetWatch.WithPretty(),
-		)
-		if err != nil {
-			return err
+	client := meta.(*elastic.Client)
+	res, err := client.API.Watcher.GetWatch(
+		id,
+		client.API.Watcher.GetWatch.WithContext(context.Background()),
+		client.API.Watcher.GetWatch.WithPretty(),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
+			log.Warnf("Watcher %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
-				log.Warnf("Watcher %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get watcher %s: %s", id, res.String())
+		return errors.Errorf("Error when get watcher %s: %s", id, res.String())
 
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Watcher.GetWatch(
-			id,
-			client.API.Watcher.GetWatch.WithContext(context.Background()),
-			client.API.Watcher.GetWatch.WithPretty(),
-		)
-		if err != nil {
-			return err
-		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
-				log.Warnf("Watcher %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get watcher %s: %s", id, res.String())
-
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6")
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("Get watcher %s successfully:\n%s", id, string(b))
 	watcher := &Watcher{}
-	err := json.Unmarshal(b, watcher)
+	err = json.Unmarshal(b, watcher)
 	if err != nil {
 		return err
 	}
@@ -211,62 +175,28 @@ func resourceElasticsearchWatcherDelete(d *schema.ResourceData, meta interface{}
 	id := d.Id()
 	log.Debugf("Watcher id: %s", id)
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.WatcherDeleteWatch(
-			id,
-			client.API.XPack.WatcherDeleteWatch.WithContext(context.Background()),
-			client.API.XPack.WatcherDeleteWatch.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.Watcher.DeleteWatch(
+		id,
+		client.API.Watcher.DeleteWatch.WithContext(context.Background()),
+		client.API.Watcher.DeleteWatch.WithPretty(),
+	)
 
-		if err != nil {
-			return err
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
+			log.Warnf("Watcher %s not found - removing from state", id)
+			d.SetId("")
+			return nil
+
 		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
-				log.Warnf("Watcher %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-
-			}
-			return errors.Errorf("Error when delete watcher %s: %s", id, res.String())
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Watcher.DeleteWatch(
-			id,
-			client.API.Watcher.DeleteWatch.WithContext(context.Background()),
-			client.API.Watcher.DeleteWatch.WithPretty(),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Watcher %s not found - removing from state", id)
-				log.Warnf("Watcher %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-
-			}
-			return errors.Errorf("Error when delete watcher %s: %s", id, res.String())
-		}
-
-	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6")
+		return errors.Errorf("Error when delete watcher %s: %s", id, res.String())
 	}
 
 	d.SetId("")
@@ -308,49 +238,22 @@ func createWatcher(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	// v6
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.XPack.WatcherPutWatch(
-			name,
-			client.API.XPack.WatcherPutWatch.WithBody(bytes.NewReader(data)),
-			client.API.XPack.WatcherPutWatch.WithContext(context.Background()),
-			client.API.XPack.WatcherPutWatch.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.Watcher.PutWatch(
+		name,
+		client.API.Watcher.PutWatch.WithBody(bytes.NewReader(data)),
+		client.API.Watcher.PutWatch.WithContext(context.Background()),
+		client.API.Watcher.PutWatch.WithPretty(),
+	)
 
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		defer res.Body.Close()
+	defer res.Body.Close()
 
-		if res.IsError() {
-			return errors.Errorf("Error when add watcher %s: %s", name, res.String())
-		}
-
-	// v7
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.Watcher.PutWatch(
-			name,
-			client.API.Watcher.PutWatch.WithBody(bytes.NewReader(data)),
-			client.API.Watcher.PutWatch.WithContext(context.Background()),
-			client.API.Watcher.PutWatch.WithPretty(),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			return errors.Errorf("Error when add watcher %s: %s", name, res.String())
-		}
-	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6")
+	if res.IsError() {
+		return errors.Errorf("Error when add watcher %s: %s", name, res.String())
 	}
 
 	return nil

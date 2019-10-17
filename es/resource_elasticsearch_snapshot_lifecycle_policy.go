@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -98,43 +98,36 @@ func resourceElasticsearchSnapshotLifecyclePolicyUpdate(d *schema.ResourceData, 
 func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
-	var b []byte
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.SlmGetLifecycle(
-			client.API.SlmGetLifecycle.WithContext(context.Background()),
-			client.API.SlmGetLifecycle.WithPretty(),
-			client.API.SlmGetLifecycle.WithPolicyID(id),
-		)
-		if err != nil {
-			return err
+	client := meta.(*elastic.Client)
+	res, err := client.API.SlmGetLifecycle(
+		client.API.SlmGetLifecycle.WithContext(context.Background()),
+		client.API.SlmGetLifecycle.WithPretty(),
+		client.API.SlmGetLifecycle.WithPolicyID(id),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Snapshot lifecycle policy %s not found - removing from state", id)
+			log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Snapshot lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", id, res.String())
+		return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", id, res.String())
 
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("Get snapshot lifecycle policy successfully:\n%s", string(b))
 
 	snapshotLifecyclePolicy := make(SnapshotLifecyclePolicy)
-	err := json.Unmarshal(b, &snapshotLifecyclePolicy)
+	err = json.Unmarshal(b, &snapshotLifecyclePolicy)
 	if err != nil {
 		return err
 	}
@@ -163,34 +156,28 @@ func resourceElasticsearchSnapshotLifecyclePolicyDelete(d *schema.ResourceData, 
 
 	id := d.Id()
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.SlmDeleteLifecycle(
-			id,
-			client.API.SlmDeleteLifecycle.WithContext(context.Background()),
-			client.API.SlmDeleteLifecycle.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.SlmDeleteLifecycle(
+		id,
+		client.API.SlmDeleteLifecycle.WithContext(context.Background()),
+		client.API.SlmDeleteLifecycle.WithPretty(),
+	)
 
-		if err != nil {
-			return err
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Snapshot lifecycle policy %s not found - removing from state", id)
+			log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
+		return errors.Errorf("Error when delete snapshot lifecycle policy %s: %s", id, res.String())
 
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Snapshot lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when delete snapshot lifecycle policy %s: %s", id, res.String())
-
-		}
-	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
 	}
 
 	d.SetId("")
@@ -217,29 +204,23 @@ func createSnapshotLifecyclePolicy(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// Use the right client depend to Elasticsearch version
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
+	client := meta.(*elastic.Client)
 
-		res, err := client.API.SlmPutLifecycle(
-			name,
-			client.API.SlmPutLifecycle.WithBody(bytes.NewReader(b)),
-			client.API.SlmPutLifecycle.WithContext(context.Background()),
-			client.API.SlmPutLifecycle.WithPretty(),
-		)
+	res, err := client.API.SlmPutLifecycle(
+		name,
+		client.API.SlmPutLifecycle.WithBody(bytes.NewReader(b)),
+		client.API.SlmPutLifecycle.WithContext(context.Background()),
+		client.API.SlmPutLifecycle.WithPretty(),
+	)
 
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		defer res.Body.Close()
+	defer res.Body.Close()
 
-		if res.IsError() {
-			return errors.Errorf("Error when add snapshot lifecycle policy %s: %s", name, res.String())
-		}
-	default:
-		return errors.New("Snapshot lifecyle policy is only supported by the elastic library >= v7")
+	if res.IsError() {
+		return errors.Errorf("Error when add snapshot lifecycle policy %s: %s", name, res.String())
 	}
 
 	return nil

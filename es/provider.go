@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -72,8 +73,7 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	var (
-		relevantClient interface{}
-		data           map[string]interface{}
+		data map[string]interface{}
 	)
 
 	URLs := strings.Split(d.Get("urls").(string), ",")
@@ -135,7 +135,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	log.Debugf("Server: %s", version)
 
 	if version < "7.0.0" {
-		return nil, errors.New("ElasticSearch is older than 7.0.0 (%s), you need to use the right version of elasticsearch provider", version)
+		return nil, errors.Errorf("ElasticSearch is older than 7.0.0 (%s), you need to use the right version of elasticsearch provider", version)
 	}
 
 	return client, nil

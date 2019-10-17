@@ -13,8 +13,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -70,65 +69,34 @@ func resourceElasticsearchIndexLifecyclePolicyUpdate(d *schema.ResourceData, met
 func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
-	var b []byte
-
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.ILM.GetLifecycle(
-			client.API.ILM.GetLifecycle.WithContext(context.Background()),
-			client.API.ILM.GetLifecycle.WithPretty(),
-			client.API.ILM.GetLifecycle.WithPolicy(id),
-		)
-		if err != nil {
-			return err
+	client := meta.(*elastic.Client)
+	res, err := client.API.ILM.GetLifecycle(
+		client.API.ILM.GetLifecycle.WithContext(context.Background()),
+		client.API.ILM.GetLifecycle.WithPretty(),
+		client.API.ILM.GetLifecycle.WithPolicy(id),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+			log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.ILM.GetLifecycle(
-			client.API.ILM.GetLifecycle.WithContext(context.Background()),
-			client.API.ILM.GetLifecycle.WithPretty(),
-			client.API.ILM.GetLifecycle.WithPolicy(id),
-		)
-		if err != nil {
-			return err
-		}
-		defer res.Body.Close()
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
-		}
-		b, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
+		return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
 
 	log.Debugf("Get life cycle policy %s successfully:\n%s", id, string(b))
 
 	policyTemp := make(map[string]interface{})
-	err := json.Unmarshal(b, &policyTemp)
+	err = json.Unmarshal(b, &policyTemp)
 	if err != nil {
 		return err
 	}
@@ -145,55 +113,27 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.ILM.DeleteLifecycle(
-			id,
-			client.API.ILM.DeleteLifecycle.WithContext(context.Background()),
-			client.API.ILM.DeleteLifecycle.WithPretty(),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.ILM.DeleteLifecycle(
+		id,
+		client.API.ILM.DeleteLifecycle.WithContext(context.Background()),
+		client.API.ILM.DeleteLifecycle.WithPretty(),
+	)
 
-		if err != nil {
-			return err
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		if res.StatusCode == 404 {
+			fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
+			log.Warnf("Index lifecycle policy %s not found - removing from state", id)
+			d.SetId("")
+			return nil
 		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
-		}
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.ILM.DeleteLifecycle(
-			client.API.ILM.DeleteLifecycle.WithContext(context.Background()),
-			client.API.ILM.DeleteLifecycle.WithPretty(),
-			client.API.ILM.DeleteLifecycle.WithPolicy(id),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			if res.StatusCode == 404 {
-				fmt.Printf("[WARN] Index lifecycle policy %s not found - removing from state", id)
-				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
-				d.SetId("")
-				return nil
-			}
-			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
-		}
-	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
+		return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
 	}
 
 	d.SetId("")
@@ -205,45 +145,22 @@ func createIndexLifecyclePolicy(d *schema.ResourceData, meta interface{}) error 
 	name := d.Get("name").(string)
 	policy := d.Get("policy").(string)
 
-	switch meta.(type) {
-	case *elastic7.Client:
-		client := meta.(*elastic7.Client)
-		res, err := client.API.ILM.PutLifecycle(
-			name,
-			client.API.ILM.PutLifecycle.WithContext(context.Background()),
-			client.API.ILM.PutLifecycle.WithPretty(),
-			client.API.ILM.PutLifecycle.WithBody(strings.NewReader(policy)),
-		)
+	client := meta.(*elastic.Client)
+	res, err := client.API.ILM.PutLifecycle(
+		name,
+		client.API.ILM.PutLifecycle.WithContext(context.Background()),
+		client.API.ILM.PutLifecycle.WithPretty(),
+		client.API.ILM.PutLifecycle.WithBody(strings.NewReader(policy)),
+	)
 
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
 
-		defer res.Body.Close()
+	defer res.Body.Close()
 
-		if res.IsError() {
-			return errors.Errorf("Error when add lifecycle policy %s: %s", name, res.String())
-		}
-	case *elastic6.Client:
-		client := meta.(*elastic6.Client)
-		res, err := client.API.ILM.PutLifecycle(
-			client.API.ILM.PutLifecycle.WithContext(context.Background()),
-			client.API.ILM.PutLifecycle.WithPretty(),
-			client.API.ILM.PutLifecycle.WithPolicy(name),
-			client.API.ILM.PutLifecycle.WithBody(strings.NewReader(policy)),
-		)
-
-		if err != nil {
-			return err
-		}
-
-		defer res.Body.Close()
-
-		if res.IsError() {
-			return errors.Errorf("Error when add lifecycle policy %s: %s", name, res.String())
-		}
-	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
+	if res.IsError() {
+		return errors.Errorf("Error when add lifecycle policy %s: %s", name, res.String())
 	}
 
 	return nil

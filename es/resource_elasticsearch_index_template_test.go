@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -49,37 +48,18 @@ func testCheckElasticsearchIndexTemplateExists(name string) resource.TestCheckFu
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Indices.GetTemplate(
-				client.API.Indices.GetTemplate.WithName(rs.Primary.ID),
-				client.API.Indices.GetTemplate.WithContext(context.Background()),
-				client.API.Indices.GetTemplate.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get index template %s: %s", rs.Primary.ID, res.String())
-			}
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.Indices.GetTemplate(
-				client.API.Indices.GetTemplate.WithName(rs.Primary.ID),
-				client.API.Indices.GetTemplate.WithContext(context.Background()),
-				client.API.Indices.GetTemplate.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get index template %s: %s", rs.Primary.ID, res.String())
-			}
-		default:
-			return errors.New("Index template is only supported by the elastic library >= v6")
+		client := meta.(*elastic.Client)
+		res, err := client.API.Indices.GetTemplate(
+			client.API.Indices.GetTemplate.WithName(rs.Primary.ID),
+			client.API.Indices.GetTemplate.WithContext(context.Background()),
+			client.API.Indices.GetTemplate.WithPretty(),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get index template %s: %s", rs.Primary.ID, res.String())
 		}
 
 		return nil
@@ -94,41 +74,20 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Indices.DeleteTemplate(
-				rs.Primary.ID,
-				client.API.Indices.DeleteTemplate.WithContext(context.Background()),
-				client.API.Indices.DeleteTemplate.WithPretty(),
-			)
-			if err != nil {
-				return err
+		client := meta.(*elastic.Client)
+		res, err := client.API.Indices.DeleteTemplate(
+			rs.Primary.ID,
+			client.API.Indices.DeleteTemplate.WithContext(context.Background()),
+			client.API.Indices.DeleteTemplate.WithPretty(),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				return nil
 			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.Indices.DeleteTemplate(
-				rs.Primary.ID,
-				client.API.Indices.DeleteTemplate.WithContext(context.Background()),
-				client.API.Indices.DeleteTemplate.WithPretty(),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		default:
-			return errors.New("Index template is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Index template %q still exists", rs.Primary.ID)
