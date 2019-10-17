@@ -9,8 +9,6 @@ import (
 	"net/url"
 	"strings"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -95,7 +93,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	// Intialise connexion
-	cfg := elastic7.Config{
+	cfg := elastic.Config{
 		Addresses: URLs,
 	}
 	if username != "" && password != "" {
@@ -114,7 +112,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		transport.TLSClientConfig.RootCAs = caCertPool
 	}
 	cfg.Transport = transport
-	client, err := elastic7.NewClient(cfg)
+	client, err := elastic.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -136,39 +134,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	version := data["version"].(map[string]interface{})["number"].(string)
 	log.Debugf("Server: %s", version)
 
-	if version < "8.0.0" && version >= "7.0.0" {
-		log.Printf("[INFO] Using ES 7")
-		relevantClient = client
-	} else if version < "7.0.0" && version >= "6.0.0" {
-		log.Printf("[INFO] Using ES 6")
-
-		// Intialise connexion
-		cfg := elastic6.Config{
-			Addresses: URLs,
-		}
-		if username != "" && password != "" {
-			cfg.Username = username
-			cfg.Password = password
-		}
-		if insecure == true {
-			transport.TLSClientConfig.InsecureSkipVerify = true
-		}
-		// If a cacertFile has been specified, use that for cert validation
-		if cacertFile != "" {
-			caCert, _, _ := pathorcontents.Read(cacertFile)
-
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM([]byte(caCert))
-			transport.TLSClientConfig.RootCAs = caCertPool
-		}
-		cfg.Transport = transport
-		relevantClient, err = elastic6.NewClient(cfg)
-		if err != nil {
-			return nil, err
-		}
-	} else if version < "6.0.0" {
-		return nil, errors.New("ElasticSearch is older than 6.0.0")
+	if version < "7.0.0" {
+		return nil, errors.New("ElasticSearch is older than 7.0.0 (%s), you need to use the right version of elasticsearch provider", version)
 	}
 
-	return relevantClient, nil
+	return client, nil
 }
