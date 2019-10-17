@@ -27,6 +27,12 @@ func TestAccElasticsearchSecurityRoleMapping(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchSecurityRoleMappingUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSecurityRoleMappingExists("elasticsearch_role_mapping.test"),
+				),
+			},
+			{
 				ResourceName:            "elasticsearch_role_mapping.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -105,6 +111,20 @@ resource "elasticsearch_role_mapping" "test" {
 {
 	"field": {
 		"groups": "cn=admins,dc=example,dc=com"
+	}
+}
+EOF
+}
+`
+var testElasticsearchSecurityRoleMappingUpdate = `
+resource "elasticsearch_role_mapping" "test" {
+  name 		= "terraform-test"
+  enabled 	= "true"
+  roles 	= ["superuser"]
+  rules 	= <<EOF
+{
+	"field": {
+		"groups": "cn=admins2,dc=example,dc=com"
 	}
 }
 EOF

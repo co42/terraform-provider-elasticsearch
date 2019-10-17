@@ -27,6 +27,12 @@ func TestAccElasticsearchWatcher(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchWatcherUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchWatcherExists("elasticsearch_watcher.test"),
+				),
+			},
+			{
 				ResourceName:            "elasticsearch_watcher.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -102,6 +108,62 @@ resource "elasticsearch_watcher" "test" {
   trigger	= <<EOF
 {
 	"schedule" : { "cron" : "0 0/1 * * * ?" }
+}
+EOF
+  input		= <<EOF
+{
+	"search" : {
+      "request" : {
+        "indices" : [
+          "logstash*"
+        ],
+        "body" : {
+          "query" : {
+            "bool" : {
+              "must" : {
+                "match": {
+                   "response": 404
+                }
+              },
+              "filter" : {
+                "range": {
+                  "@timestamp": {
+                    "from": "{{ctx.trigger.scheduled_time}}||-5m",
+                    "to": "{{ctx.trigger.triggered_time}}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}
+EOF
+  condition		= <<EOF
+{
+	"compare" : { "ctx.payload.hits.total" : { "gt" : 0 }}
+}
+EOF
+  actions		= <<EOF
+{
+	"email_admin" : {
+      "email" : {
+        "to" : "admin@domain.host.com",
+        "subject" : "404 recently encountered"
+      }
+    }
+}
+EOF
+}
+`
+
+var testElasticsearchWatcherUpdate = `
+resource "elasticsearch_watcher" "test" {
+  name		= "terraform-test"
+  trigger	= <<EOF
+{
+	"schedule" : { "cron" : "1 0/1 * * * ?" }
 }
 EOF
   input		= <<EOF

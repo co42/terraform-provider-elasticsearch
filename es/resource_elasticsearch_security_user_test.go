@@ -27,6 +27,12 @@ func TestAccElasticsearchSecurityUser(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchSecurityUserUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSecurityUserExists("elasticsearch_user.test"),
+				),
+			},
+			{
 				ResourceName:            "elasticsearch_user.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -103,6 +109,17 @@ resource "elasticsearch_user" "test" {
   email 	= "no@no.no"
   full_name = "test"
   password 	= "changeme"
+  roles 	= ["kibana_user"]
+}
+`
+
+var testElasticsearchSecurityUserUpdate = `
+resource "elasticsearch_user" "test" {
+  username 	= "terraform-test"
+  enabled 	= "true"
+  email 	= "no@no.no"
+  full_name = "test2"
+  password 	= "changeme2"
   roles 	= ["kibana_user"]
 }
 `
