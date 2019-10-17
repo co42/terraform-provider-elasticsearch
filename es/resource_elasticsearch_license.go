@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -21,8 +22,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Licence object
+// License object
 type License map[string]*LicenseSpec
+
+// LicenseSpec is license object
 type LicenseSpec struct {
 	UID                string  `json:"uid"`
 	Type               string  `json:"type"`
@@ -35,6 +38,7 @@ type LicenseSpec struct {
 	StartDateInMillis  float64 `json:"start_date_in_millis"`
 }
 
+// resourceElasticsearchLicense handle the license API call
 func resourceElasticsearchLicense() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchLicenseCreate,
@@ -65,6 +69,7 @@ func resourceElasticsearchLicense() *schema.Resource {
 	}
 }
 
+// resourceElasticsearchLicenseCreate create license or enable basic license
 func resourceElasticsearchLicenseCreate(d *schema.ResourceData, meta interface{}) error {
 	err := createLicense(d, meta)
 	if err != nil {
@@ -74,6 +79,7 @@ func resourceElasticsearchLicenseCreate(d *schema.ResourceData, meta interface{}
 	return resourceElasticsearchLicenseRead(d, meta)
 }
 
+// resourceElasticsearchLicense update license
 func resourceElasticsearchLicenseUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createLicense(d, meta)
 	if err != nil {
@@ -82,6 +88,7 @@ func resourceElasticsearchLicenseUpdate(d *schema.ResourceData, meta interface{}
 	return resourceElasticsearchLicenseRead(d, meta)
 }
 
+// resourceElasticsearchLicenseRead read license
 func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) error {
 
 	var b []byte
@@ -105,9 +112,8 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 				log.Warnf("License not found - removing from state")
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get license: %s", res.String())
 			}
+			return errors.Errorf("Error when get license: %s", res.String())
 
 		}
 		b, err = ioutil.ReadAll(res.Body)
@@ -131,9 +137,8 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 				log.Warnf("License not found - removing from state")
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get license: %s", res.String())
 			}
+			return errors.Errorf("Error when get license: %s", res.String())
 
 		}
 		b, err = ioutil.ReadAll(res.Body)
@@ -141,7 +146,7 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 			return err
 		}
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("License is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get license successfully:\n%s", string(b))
@@ -167,6 +172,7 @@ func resourceElasticsearchLicenseRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
+// resourceElasticsearchLicenseDelete delete license
 func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}) error {
 
 	// Use the right client depend to Elasticsearch version
@@ -191,9 +197,9 @@ func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}
 				log.Warnf("License not found - removing from state")
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete license: %s", res.String())
 			}
+			return errors.Errorf("Error when delete license: %s", res.String())
+
 		}
 	// V7
 	case *elastic7.Client:
@@ -215,18 +221,19 @@ func resourceElasticsearchLicenseDelete(d *schema.ResourceData, meta interface{}
 				log.Warnf("License not found - removing from state")
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete license: %s", res.String())
 			}
+			return errors.Errorf("Error when delete license: %s", res.String())
+
 		}
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("License is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
 	return nil
 }
 
+// createLicense add or update license
 func createLicense(d *schema.ResourceData, meta interface{}) error {
 	license := d.Get("license").(string)
 	useBasicLicense := d.Get("use_basic_license").(bool)
@@ -277,13 +284,13 @@ func createLicense(d *schema.ResourceData, meta interface{}) error {
 			if data["eligible_to_start_basic"].(bool) == false {
 				log.Infof("Basic license is already enabled")
 				return nil
-			} else {
-				res, err = client.API.XPack.LicensePostStartBasic(
-					client.API.XPack.LicensePostStartBasic.WithContext(context.Background()),
-					client.API.XPack.LicensePostStartBasic.WithPretty(),
-					client.API.XPack.LicensePostStartBasic.WithAcknowledge(true),
-				)
 			}
+			res, err = client.API.XPack.LicensePostStartBasic(
+				client.API.XPack.LicensePostStartBasic.WithContext(context.Background()),
+				client.API.XPack.LicensePostStartBasic.WithPretty(),
+				client.API.XPack.LicensePostStartBasic.WithAcknowledge(true),
+			)
+
 		}
 
 		if err != nil {
@@ -340,13 +347,13 @@ func createLicense(d *schema.ResourceData, meta interface{}) error {
 			if data["eligible_to_start_basic"].(bool) == false {
 				log.Infof("Basic license is already enabled")
 				return nil
-			} else {
-				res, err = client.API.License.PostStartBasic(
-					client.API.License.PostStartBasic.WithContext(context.Background()),
-					client.API.License.PostStartBasic.WithPretty(),
-					client.API.License.PostStartBasic.WithAcknowledge(true),
-				)
 			}
+			res, err = client.API.License.PostStartBasic(
+				client.API.License.PostStartBasic.WithContext(context.Background()),
+				client.API.License.PostStartBasic.WithPretty(),
+				client.API.License.PostStartBasic.WithAcknowledge(true),
+			)
+
 		}
 
 		if err != nil {
@@ -359,7 +366,7 @@ func createLicense(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add license: %s", res.String())
 		}
 	default:
-		return errors.New("License is only supported by the elastic library >= v6!")
+		return errors.New("License is only supported by the elastic library >= v6")
 	}
 
 	return nil

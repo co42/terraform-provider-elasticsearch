@@ -82,7 +82,7 @@ func testCheckElasticsearchSnapshotLifecyclePolicyExists(name string) resource.T
 			}
 
 		default:
-			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
 		}
 
 		return nil
@@ -128,7 +128,7 @@ func testCheckElasticsearchSnapshotLifecyclePolicyDestroy(s *terraform.State) er
 				return nil
 			}
 		default:
-			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
 		}
 
 		return fmt.Errorf("Snapshot lifecycle policy %q still exists", rs.Primary.ID)

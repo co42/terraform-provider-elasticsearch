@@ -79,7 +79,7 @@ func testCheckElasticsearchIndexTemplateExists(name string) resource.TestCheckFu
 				return errors.Errorf("Error when get index template %s: %s", rs.Primary.ID, res.String())
 			}
 		default:
-			return errors.New("Index template is only supported by the elastic library >= v6!")
+			return errors.New("Index template is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -128,7 +128,7 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 				}
 			}
 		default:
-			return errors.New("Index template is only supported by the elastic library >= v6!")
+			return errors.New("Index template is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Index template %q still exists", rs.Primary.ID)

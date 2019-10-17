@@ -1,3 +1,6 @@
+/*
+Package main create Elasticsearch provider for Terraform
+*/
 package main
 
 import (

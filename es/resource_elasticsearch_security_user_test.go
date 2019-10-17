@@ -82,7 +82,7 @@ func testCheckElasticsearchSecurityUserExists(name string) resource.TestCheckFun
 				return errors.Errorf("Error when get user %s: %s", rs.Primary.ID, res.String())
 			}
 		default:
-			return errors.New("User is only supported by the elastic library >= v6!")
+			return errors.New("User is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -134,7 +134,7 @@ func testCheckElasticsearchSecurityUserDestroy(s *terraform.State) error {
 				}
 			}
 		default:
-			return errors.New("user is only supported by the elastic library >= v6!")
+			return errors.New("user is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("User %q still exists", rs.Primary.ID)

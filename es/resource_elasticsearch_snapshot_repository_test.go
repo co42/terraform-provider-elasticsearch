@@ -82,7 +82,7 @@ func testCheckElasticsearchSnapshotRepositoryExists(name string) resource.TestCh
 			}
 
 		default:
-			return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
+			return errors.New("Snapshot repository is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -134,7 +134,7 @@ func testCheckElasticsearchSnapshotRepositoryDestroy(s *terraform.State) error {
 				}
 			}
 		default:
-			return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
+			return errors.New("Snapshot repository is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Snapshot repository %q still exists", rs.Primary.ID)

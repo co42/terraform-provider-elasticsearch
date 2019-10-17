@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -19,8 +20,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Role mapping object
+// RoleMapping is role mapping object returned by API
 type RoleMapping map[string]*RoleMappingSpec
+
+// RoleMappingSpec is role mapping object
 type RoleMappingSpec struct {
 	Roles    []string    `json:"roles"`
 	Enabled  bool        `json:"enabled"`
@@ -28,7 +31,7 @@ type RoleMappingSpec struct {
 	Metadata interface{} `json:"metadata,omitempty"`
 }
 
-// Role mapping resource specification
+// resourceElasticsearchSecurityRoleMapping handle role mapping API call
 func resourceElasticsearchSecurityRoleMapping() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSecurityRoleMappingCreate,
@@ -54,7 +57,7 @@ func resourceElasticsearchSecurityRoleMapping() *schema.Resource {
 			"rules": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"roles": {
 				Type: schema.TypeSet,
@@ -67,13 +70,13 @@ func resourceElasticsearchSecurityRoleMapping() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "{}",
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
 }
 
-// Create new role mapping in Elasticsearch
+// resourceElasticsearchSecurityRoleMappingCreate  create new role mapping in Elasticsearch
 func resourceElasticsearchSecurityRoleMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 
@@ -87,7 +90,7 @@ func resourceElasticsearchSecurityRoleMappingCreate(d *schema.ResourceData, meta
 	return resourceElasticsearchSecurityRoleMappingRead(d, meta)
 }
 
-// Read existing role mapping in Elasticsearch
+// resourceElasticsearchSecurityRoleMappingRead read existing role mapping in Elasticsearch
 func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -115,9 +118,9 @@ func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta i
 				log.Warnf("Role mapping %s not found. Removing from state\n", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get role mapping %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get role mapping %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -142,16 +145,16 @@ func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta i
 				log.Warnf("Role mapping %s not found. Removing from state\n", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get role mapping %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get role mapping %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("Role mapping is only supported by the elastic library >= v6!")
+		return errors.New("Role mapping is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get role mapping %s successfully:\n%s", id, string(b))
@@ -173,7 +176,7 @@ func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-// Update existing role mapping in Elasticsearch
+// resourceElasticsearchSecurityRoleMappingUpdate update existing role mapping in Elasticsearch
 func resourceElasticsearchSecurityRoleMappingUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createRoleMapping(d, meta)
 	if err != nil {
@@ -185,7 +188,7 @@ func resourceElasticsearchSecurityRoleMappingUpdate(d *schema.ResourceData, meta
 	return resourceElasticsearchSecurityRoleMappingRead(d, meta)
 }
 
-// Delete existing role mapping in Elasticsearch
+// resourceElasticsearchSecurityRoleMappingDelete delete existing role mapping in Elasticsearch
 func resourceElasticsearchSecurityRoleMappingDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -214,9 +217,9 @@ func resourceElasticsearchSecurityRoleMappingDelete(d *schema.ResourceData, meta
 				log.Warnf("Role mapping %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete role mapping %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete role mapping %s: %s", id, res.String())
+
 		}
 
 	// v7
@@ -240,13 +243,13 @@ func resourceElasticsearchSecurityRoleMappingDelete(d *schema.ResourceData, meta
 				log.Warnf("Role mapping %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete role mapping %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete role mapping %s: %s", id, res.String())
+
 		}
 
 	default:
-		return errors.New("Role mapping is only supported by the elastic library >= v6!")
+		return errors.New("Role mapping is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
@@ -256,13 +259,13 @@ func resourceElasticsearchSecurityRoleMappingDelete(d *schema.ResourceData, meta
 
 }
 
-// Create or update role mapping
+// createRoleMapping create or update role mapping
 func createRoleMapping(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	enabled := d.Get("enabled").(bool)
 	roles := convertArrayInterfaceToArrayString(d.Get("roles").(*schema.Set).List())
-	rules := optionalInterfaceJson(d.Get("rules").(string))
-	metadata := optionalInterfaceJson(d.Get("metadata").(string))
+	rules := optionalInterfaceJSON(d.Get("rules").(string))
+	metadata := optionalInterfaceJSON(d.Get("metadata").(string))
 
 	roleMapping := &RoleMappingSpec{
 		Enabled:  enabled,
@@ -320,7 +323,7 @@ func createRoleMapping(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add role mapping %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Role mapping is only supported by the elastic library >= v6!")
+		return errors.New("Role mapping is only supported by the elastic library >= v6")
 	}
 
 	return nil

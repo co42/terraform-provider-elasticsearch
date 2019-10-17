@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -19,13 +20,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Snapshot repository object
+// SnapshotRepository object returned by API
 type SnapshotRepository map[string]*SnapshotRepositorySpec
+
+// SnapshotRepositorySpec is the repository object
 type SnapshotRepositorySpec struct {
 	Type     string            `json:"type"`
 	Settings map[string]string `json:"settings"`
 }
 
+// resourceElasticsearchSnapshotRepository handle the snapshot repository API call
 func resourceElasticsearchSnapshotRepository() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSnapshotRepositoryCreate,
@@ -58,6 +62,7 @@ func resourceElasticsearchSnapshotRepository() *schema.Resource {
 	}
 }
 
+// resourceElasticsearchSnapshotRepositoryCreate create snapshot repository
 func resourceElasticsearchSnapshotRepositoryCreate(d *schema.ResourceData, meta interface{}) error {
 
 	name := d.Get("name").(string)
@@ -70,6 +75,7 @@ func resourceElasticsearchSnapshotRepositoryCreate(d *schema.ResourceData, meta 
 	return resourceElasticsearchSnapshotRepositoryRead(d, meta)
 }
 
+// resourceElasticsearchSnapshotRepositoryUpdate update the snapshot repository
 func resourceElasticsearchSnapshotRepositoryUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createSnapshotRepository(d, meta)
 	if err != nil {
@@ -78,6 +84,7 @@ func resourceElasticsearchSnapshotRepositoryUpdate(d *schema.ResourceData, meta 
 	return resourceElasticsearchSnapshotRepositoryRead(d, meta)
 }
 
+// resourceElasticsearchSnapshotRepositoryRead read the sanpshot repository
 func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -103,9 +110,8 @@ func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta in
 				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
 
 		}
 		b, err = ioutil.ReadAll(res.Body)
@@ -131,9 +137,8 @@ func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta in
 				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get snapshot repository %s: %s", id, res.String())
 
 		}
 		b, err = ioutil.ReadAll(res.Body)
@@ -141,7 +146,7 @@ func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta in
 			return err
 		}
 	default:
-		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get Snapshot repository successfully:\n%s", string(b))
@@ -159,6 +164,7 @@ func resourceElasticsearchSnapshotRepositoryRead(d *schema.ResourceData, meta in
 	return nil
 }
 
+// resourceElasticsearchSnapshotRepositoryDelete delete the snapshot repository
 func resourceElasticsearchSnapshotRepositoryDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -186,9 +192,9 @@ func resourceElasticsearchSnapshotRepositoryDelete(d *schema.ResourceData, meta 
 				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
+
 		}
 
 	// v7
@@ -212,18 +218,19 @@ func resourceElasticsearchSnapshotRepositoryDelete(d *schema.ResourceData, meta 
 				log.Warnf("Snapshot repository %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete snapshot repository %s: %s", id, res.String())
+
 		}
 	default:
-		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
 	return nil
 }
 
+// createSnapshotRepository create or update snapshot repository
 func createSnapshotRepository(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	snapshotType := d.Get("type").(string)
@@ -283,7 +290,7 @@ func createSnapshotRepository(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add snapshot repository %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Snapshot repository is only supported by the elastic library >= v6!")
+		return errors.New("Snapshot repository is only supported by the elastic library >= v6")
 	}
 
 	return nil

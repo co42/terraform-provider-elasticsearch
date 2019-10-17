@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -19,10 +20,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Watcher Json object
+// Watcher object returned by API
 type Watcher struct {
 	Watcher *WatcherSpec `json:"watch"`
 }
+
+// WatcherSpec is the watcher object
 type WatcherSpec struct {
 	Trigger        interface{} `json:"trigger,omitempty"`
 	Input          interface{} `json:"input,omitempty"`
@@ -32,7 +35,7 @@ type WatcherSpec struct {
 	ThrottlePeriod string      `json:"throttle_period,omitempty"`
 }
 
-// Resource specification to handle watcher in Elasticsearch
+// resourceElasticsearchWatcher handle the watcher API call
 func resourceElasticsearchWatcher() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchWatcherCreate,
@@ -53,38 +56,38 @@ func resourceElasticsearchWatcher() *schema.Resource {
 			"trigger": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"input": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"condition": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"actions": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"throttle_period": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
 }
 
-// Create new watcher in Elasticsearch
+// resourceElasticsearchWatcherCreate create new watcher in Elasticsearch
 func resourceElasticsearchWatcherCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 
@@ -99,7 +102,7 @@ func resourceElasticsearchWatcherCreate(d *schema.ResourceData, meta interface{}
 	return resourceElasticsearchWatcherRead(d, meta)
 }
 
-// Read existing watch in Elasticsearch
+// resourceElasticsearchWatcherRead read existing watch in Elasticsearch
 func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -127,9 +130,9 @@ func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) 
 				log.Warnf("Watcher %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get watcher %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get watcher %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -154,16 +157,16 @@ func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) 
 				log.Warnf("Watcher %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get watcher %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get watcher %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6!")
+		return errors.New("Watcher is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get watcher %s successfully:\n%s", id, string(b))
@@ -190,7 +193,7 @@ func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-// Update existing watcher in Elasticsearch
+// resourceElasticsearchWatcherUpdate update existing watcher in Elasticsearch
 func resourceElasticsearchWatcherUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createWatcher(d, meta)
 	if err != nil {
@@ -202,7 +205,7 @@ func resourceElasticsearchWatcherUpdate(d *schema.ResourceData, meta interface{}
 	return resourceElasticsearchWatcherRead(d, meta)
 }
 
-// Delete existing role in Elasticsearch
+// resourceElasticsearchWatcherDelete delete existing watcher in Elasticsearch
 func resourceElasticsearchWatcherDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -263,7 +266,7 @@ func resourceElasticsearchWatcherDelete(d *schema.ResourceData, meta interface{}
 		}
 
 	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6!")
+		return errors.New("Watcher is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
@@ -279,14 +282,14 @@ func (r *WatcherSpec) String() string {
 	return string(json)
 }
 
-// Create or update watcher in Elasticsearch
+// createWatcher create or update watcher in Elasticsearch
 func createWatcher(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
-	trigger := optionalInterfaceJson(d.Get("trigger").(string))
-	input := optionalInterfaceJson(d.Get("input").(string))
-	condition := optionalInterfaceJson(d.Get("condition").(string))
-	actions := optionalInterfaceJson(d.Get("actions").(string))
-	metadata := optionalInterfaceJson(d.Get("metadata").(string))
+	trigger := optionalInterfaceJSON(d.Get("trigger").(string))
+	input := optionalInterfaceJSON(d.Get("input").(string))
+	condition := optionalInterfaceJSON(d.Get("condition").(string))
+	actions := optionalInterfaceJSON(d.Get("actions").(string))
+	metadata := optionalInterfaceJSON(d.Get("metadata").(string))
 	throttlePeriod := d.Get("throttle_period").(string)
 
 	watcher := &WatcherSpec{
@@ -347,7 +350,7 @@ func createWatcher(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add watcher %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Watcher is only supported by the elastic library >= v6!")
+		return errors.New("Watcher is only supported by the elastic library >= v6")
 	}
 
 	return nil

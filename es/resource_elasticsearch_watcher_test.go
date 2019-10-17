@@ -83,7 +83,7 @@ func testCheckElasticsearchWatcherExists(name string) resource.TestCheckFunc {
 			}
 
 		default:
-			return errors.New("Watcher is only supported by the elastic library >= v6!")
+			return errors.New("Watcher is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -135,7 +135,7 @@ func testCheckElasticsearchWatcherDestroy(s *terraform.State) error {
 				}
 			}
 		default:
-			return errors.New("Watcher is only supported by the elastic library >= v6!")
+			return errors.New("Watcher is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Watcher %q still exists", rs.Primary.ID)

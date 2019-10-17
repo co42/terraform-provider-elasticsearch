@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -19,8 +20,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// User Json object
+// User Json object returned by API
 type User map[string]*UserSpec
+
+// UserSpec is the user object
 type UserSpec struct {
 	Enabled      bool        `json:"enabled"`
 	Email        string      `json:"email"`
@@ -31,7 +34,7 @@ type UserSpec struct {
 	Metadata     interface{} `json:"metadata,omitempty"`
 }
 
-// Resource specification to handle user in Elasticsearch
+// resourceElasticsearchSecurityUser handle the user API call
 func resourceElasticsearchSecurityUser() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSecurityUserCreate,
@@ -81,13 +84,13 @@ func resourceElasticsearchSecurityUser() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "{}",
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
 }
 
-// Create new user in Elasticsearch
+// resourceElasticsearchSecurityUserCreate create new user in Elasticsearch
 func resourceElasticsearchSecurityUserCreate(d *schema.ResourceData, meta interface{}) error {
 	username := d.Get("username").(string)
 
@@ -102,7 +105,7 @@ func resourceElasticsearchSecurityUserCreate(d *schema.ResourceData, meta interf
 	return resourceElasticsearchSecurityUserRead(d, meta)
 }
 
-// Read existing user in Elasticsearch
+// resourceElasticsearchSecurityUserRead read existing user in Elasticsearch
 func resourceElasticsearchSecurityUserRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -130,9 +133,9 @@ func resourceElasticsearchSecurityUserRead(d *schema.ResourceData, meta interfac
 				log.Warnf("User %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get user %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get user %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -157,16 +160,16 @@ func resourceElasticsearchSecurityUserRead(d *schema.ResourceData, meta interfac
 				log.Warnf("User %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get user %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get user %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("User is only supported by the elastic library >= v6!")
+		return errors.New("User is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get user %s successfully:\n%s", id, string(b))
@@ -190,7 +193,7 @@ func resourceElasticsearchSecurityUserRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-// Update existing user in Elasticsearch
+// resourceElasticsearchSecurityUserUpdate update existing user in Elasticsearch
 func resourceElasticsearchSecurityUserUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -252,7 +255,7 @@ func resourceElasticsearchSecurityUserUpdate(d *schema.ResourceData, meta interf
 				return errors.Errorf("Error when change password for user %s: %s", id, res.String())
 			}
 		default:
-			return errors.New("Change user password is only supported by the elastic library >= v6!")
+			return errors.New("Change user password is only supported by the elastic library >= v6")
 		}
 
 		log.Infof("Updated user password %s successfully", d.Id())
@@ -273,7 +276,7 @@ func resourceElasticsearchSecurityUserUpdate(d *schema.ResourceData, meta interf
 	return resourceElasticsearchSecurityUserRead(d, meta)
 }
 
-// Delete existing role in Elasticsearch
+// resourceElasticsearchSecurityUserDelete delete existing user in Elasticsearch
 func resourceElasticsearchSecurityUserDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -334,7 +337,7 @@ func resourceElasticsearchSecurityUserDelete(d *schema.ResourceData, meta interf
 		}
 
 	default:
-		return errors.New("User is only supported by the elastic library >= v6!")
+		return errors.New("User is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
@@ -344,13 +347,13 @@ func resourceElasticsearchSecurityUserDelete(d *schema.ResourceData, meta interf
 
 }
 
-// Print Role object as Json string
+// Print user object as Json string
 func (r *UserSpec) String() string {
 	json, _ := json.Marshal(r)
 	return string(json)
 }
 
-// Create or update role in Elasticsearch
+// createUser create or update user in Elasticsearch
 func createUser(d *schema.ResourceData, meta interface{}, isUpdate bool) error {
 	username := d.Get("username").(string)
 	enabled := d.Get("enabled").(bool)
@@ -359,7 +362,7 @@ func createUser(d *schema.ResourceData, meta interface{}, isUpdate bool) error {
 	password := d.Get("password").(string)
 	passwordHash := d.Get("password_hash").(string)
 	roles := convertArrayInterfaceToArrayString(d.Get("roles").(*schema.Set).List())
-	metadata := optionalInterfaceJson(d.Get("metadata").(string))
+	metadata := optionalInterfaceJSON(d.Get("metadata").(string))
 
 	user := &UserSpec{
 		Enabled:  enabled,
@@ -424,7 +427,7 @@ func createUser(d *schema.ResourceData, meta interface{}, isUpdate bool) error {
 			return errors.Errorf("Error when add user %s: %s", username, res.String())
 		}
 	default:
-		return errors.New("User is only supported by the elastic library >= v6!")
+		return errors.New("User is only supported by the elastic library >= v6")
 	}
 
 	return nil

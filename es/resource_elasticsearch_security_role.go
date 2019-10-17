@@ -3,6 +3,7 @@
 // Supported version:
 //  - v6
 //  - v7
+
 package es
 
 import (
@@ -19,8 +20,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Role Json object
+// Role object returned by API
 type Role map[string]*RoleSpec
+
+// RoleSpec is role object
 type RoleSpec struct {
 	Cluster      []string                    `json:"cluster"`
 	Applications []RoleApplicationPrivileges `json:"applications,omitempty"`
@@ -29,11 +32,15 @@ type RoleSpec struct {
 	Global       interface{}                 `json:"global,omitempty"`
 	Metadata     interface{}                 `json:"metadata,omitempty"`
 }
+
+// RoleApplicationPrivileges is the application object
 type RoleApplicationPrivileges struct {
 	Application string   `json:"application"`
 	Privileges  []string `json:"privileges,omitempty"`
 	Resources   []string `json:"resources,omitempty"`
 }
+
+// RoleIndicesPermissions is the indice object
 type RoleIndicesPermissions struct {
 	Names         []string    `json:"names"`
 	Privileges    []string    `json:"privileges"`
@@ -41,7 +48,7 @@ type RoleIndicesPermissions struct {
 	Query         interface{} `json:"query,omitempty"`
 }
 
-// Resource specification to handle role in Elasticsearch
+// resourceElasticsearchSecurityRole handle the role API call
 func resourceElasticsearchSecurityRole() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSecurityRoleCreate,
@@ -81,7 +88,7 @@ func resourceElasticsearchSecurityRole() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "{}",
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"indices": {
 				Type:     schema.TypeSet,
@@ -106,13 +113,13 @@ func resourceElasticsearchSecurityRole() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "{}",
-							DiffSuppressFunc: suppressEquivalentJson,
+							DiffSuppressFunc: suppressEquivalentJSON,
 						},
 						"field_security": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          "{}",
-							DiffSuppressFunc: suppressEquivalentJson,
+							DiffSuppressFunc: suppressEquivalentJSON,
 						},
 					},
 				},
@@ -147,7 +154,7 @@ func resourceElasticsearchSecurityRole() *schema.Resource {
 	}
 }
 
-// Create new role in Elasticsearch
+// resourceElasticsearchSecurityRoleCreate create new role in Elasticsearch
 func resourceElasticsearchSecurityRoleCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 
@@ -162,7 +169,7 @@ func resourceElasticsearchSecurityRoleCreate(d *schema.ResourceData, meta interf
 	return resourceElasticsearchSecurityRoleRead(d, meta)
 }
 
-// Read existing role in Elasticsearch
+// resourceElasticsearchSecurityRoleRead read existing role in Elasticsearch
 func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -190,9 +197,9 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 				log.Warnf("Role %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get role %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get role %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -217,16 +224,16 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 				log.Warnf("Role %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get role %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get role %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("Role is only supported by the elastic library >= v6!")
+		return errors.New("Role is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get role %s successfully:\n%s", id, string(b))
@@ -251,7 +258,7 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-// Update existing role in Elasticsearch
+// resourceElasticsearchSecurityRoleUpdate update existing role in Elasticsearch
 func resourceElasticsearchSecurityRoleUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createRole(d, meta)
 	if err != nil {
@@ -263,7 +270,7 @@ func resourceElasticsearchSecurityRoleUpdate(d *schema.ResourceData, meta interf
 	return resourceElasticsearchSecurityRoleRead(d, meta)
 }
 
-// Delete existing role in Elasticsearch
+// resourceElasticsearchSecurityRoleDelete delete existing role in Elasticsearch
 func resourceElasticsearchSecurityRoleDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -324,7 +331,7 @@ func resourceElasticsearchSecurityRoleDelete(d *schema.ResourceData, meta interf
 		}
 
 	default:
-		return errors.New("Role is only supported by the elastic library >= v6!")
+		return errors.New("Role is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
@@ -340,15 +347,15 @@ func (r *RoleSpec) String() string {
 	return string(json)
 }
 
-// Create or update role in Elasticsearch
+// createRole create or update role in Elasticsearch
 func createRole(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	indices := buildRolesIndicesPermissions(d.Get("indices").(*schema.Set).List())
 	applications := buildRolesApplicationPrivileges(d.Get("applications").(*schema.Set).List())
 	cluster := convertArrayInterfaceToArrayString(d.Get("cluster").(*schema.Set).List())
-	global := optionalInterfaceJson(d.Get("global").(string))
+	global := optionalInterfaceJSON(d.Get("global").(string))
 	runAs := convertArrayInterfaceToArrayString(d.Get("run_as").(*schema.Set).List())
-	metadata := optionalInterfaceJson(d.Get("metadata").(string))
+	metadata := optionalInterfaceJSON(d.Get("metadata").(string))
 
 	role := &RoleSpec{
 		Cluster:      cluster,
@@ -408,13 +415,13 @@ func createRole(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add role %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Role is only supported by the elastic library >= v6!")
+		return errors.New("Role is only supported by the elastic library >= v6")
 	}
 
 	return nil
 }
 
-// Convert list to list of RoleIndicesPermissions objects
+// buildRolesIndicesPermissions convert list to list of RoleIndicesPermissions objects
 func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
 	rolesIndicesPermissions := make([]RoleIndicesPermissions, len(raws))
 
@@ -423,8 +430,8 @@ func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
 		roleIndicesPermisions := RoleIndicesPermissions{
 			Names:         convertArrayInterfaceToArrayString(m["names"].(*schema.Set).List()),
 			Privileges:    convertArrayInterfaceToArrayString(m["privileges"].(*schema.Set).List()),
-			Query:         optionalInterfaceJson(m["query"].(string)),
-			FieldSecurity: optionalInterfaceJson(m["field_security"].(string)),
+			Query:         optionalInterfaceJSON(m["query"].(string)),
+			FieldSecurity: optionalInterfaceJSON(m["field_security"].(string)),
 		}
 
 		rolesIndicesPermissions[i] = roleIndicesPermisions
@@ -434,7 +441,7 @@ func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
 	return rolesIndicesPermissions
 }
 
-// Convert list to list of RoleApplicationPrivileges objects
+// buildRolesApplicationPrivileges convert list to list of RoleApplicationPrivileges objects
 func buildRolesApplicationPrivileges(raws []interface{}) []RoleApplicationPrivileges {
 	rolesApplicationPrivileges := make([]RoleApplicationPrivileges, len(raws))
 

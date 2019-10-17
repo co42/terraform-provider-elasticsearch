@@ -20,6 +20,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// resourceElasticsearchIndexLifecyclePolicy handle the index lifecycle policy API call
 func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchIndexLifecyclePolicyCreate,
@@ -40,12 +41,13 @@ func resourceElasticsearchIndexLifecyclePolicy() *schema.Resource {
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: suppressEquivalentJson,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
 }
 
+// resourceElasticsearchIndexLifecyclePolicyCreate create new index lifecycle policy
 func resourceElasticsearchIndexLifecyclePolicyCreate(d *schema.ResourceData, meta interface{}) error {
 	err := createIndexLifecyclePolicy(d, meta)
 	if err != nil {
@@ -55,6 +57,7 @@ func resourceElasticsearchIndexLifecyclePolicyCreate(d *schema.ResourceData, met
 	return resourceElasticsearchIndexLifecyclePolicyRead(d, meta)
 }
 
+// resourceElasticsearchIndexLifecyclePolicyUpdate update index lifecycle policy
 func resourceElasticsearchIndexLifecyclePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createIndexLifecyclePolicy(d, meta)
 	if err != nil {
@@ -63,6 +66,7 @@ func resourceElasticsearchIndexLifecyclePolicyUpdate(d *schema.ResourceData, met
 	return resourceElasticsearchIndexLifecyclePolicyRead(d, meta)
 }
 
+// resourceElasticsearchIndexLifecyclePolicyRead read index lifecycle policy
 func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
@@ -86,9 +90,8 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -111,16 +114,15 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get lifecycle policy %s: %s", id, res.String())
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
+		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get life cycle policy %s successfully:\n%s", id, string(b))
@@ -139,6 +141,7 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 	return nil
 }
 
+// resourceElasticsearchIndexLifecyclePolicyDelete delete index lifecycle policy
 func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
@@ -163,9 +166,8 @@ func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, met
 				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
 		}
 	case *elastic6.Client:
 		client := meta.(*elastic6.Client)
@@ -187,18 +189,18 @@ func resourceElasticsearchIndexLifecyclePolicyDelete(d *schema.ResourceData, met
 				log.Warnf("Index lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete lifecycle policy %s: %s", id, res.String())
 		}
 	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
+		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
 	return nil
 }
 
+// createIndexLifecyclePolicy create or update index lifecycle policy
 func createIndexLifecyclePolicy(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	policy := d.Get("policy").(string)
@@ -241,7 +243,7 @@ func createIndexLifecyclePolicy(d *schema.ResourceData, meta interface{}) error 
 			return errors.Errorf("Error when add lifecycle policy %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
+		return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
 	}
 
 	return nil

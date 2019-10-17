@@ -18,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Provider permiit to init the terraform provider
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -69,6 +70,7 @@ func Provider() terraform.ResourceProvider {
 	}
 }
 
+// providerConfigure permit to initialize the rest client to access on Elasticsearch API
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	var (
@@ -85,8 +87,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		TLSClientConfig: &tls.Config{},
 	}
 	// Checks is valid URLs
-	for _, rawUrl := range URLs {
-		_, err := url.Parse(rawUrl)
+	for _, rawURL := range URLs {
+		_, err := url.Parse(rawURL)
 		if err != nil {
 			return nil, err
 		}
@@ -165,7 +167,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 			return nil, err
 		}
 	} else if version < "6.0.0" {
-		return nil, errors.New("ElasticSearch is older than 6.0.0!")
+		return nil, errors.New("ElasticSearch is older than 6.0.0")
 	}
 
 	return relevantClient, nil

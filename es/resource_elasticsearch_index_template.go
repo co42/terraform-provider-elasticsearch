@@ -19,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// resourceElasticsearchIndexTemplate handle the index template API call
 func resourceElasticsearchIndexTemplate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchIndexTemplateCreate,
@@ -45,6 +46,7 @@ func resourceElasticsearchIndexTemplate() *schema.Resource {
 	}
 }
 
+// resourceElasticsearchIndexTemplateCreate create index template
 func resourceElasticsearchIndexTemplateCreate(d *schema.ResourceData, meta interface{}) error {
 
 	err := createIndexTemplate(d, meta)
@@ -55,6 +57,7 @@ func resourceElasticsearchIndexTemplateCreate(d *schema.ResourceData, meta inter
 	return resourceElasticsearchIndexTemplateRead(d, meta)
 }
 
+// resourceElasticsearchIndexTemplateUpdate update index template
 func resourceElasticsearchIndexTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createIndexTemplate(d, meta)
 	if err != nil {
@@ -63,6 +66,7 @@ func resourceElasticsearchIndexTemplateUpdate(d *schema.ResourceData, meta inter
 	return resourceElasticsearchIndexTemplateRead(d, meta)
 }
 
+// resourceElasticsearchIndexTemplateRead read index template
 func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
@@ -86,9 +90,9 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 				log.Warnf("Index template %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get index template %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get index template %s: %s", id, res.String())
+
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -112,9 +116,9 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 				log.Warnf("Index template %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get index template %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get index template %s: %s", id, res.String())
+
 		}
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -122,7 +126,7 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 		}
 		body = string(b)
 	default:
-		return errors.New("Index template is only supported by the elastic library >= v6!")
+		return errors.New("Index template is only supported by the elastic library >= v6")
 	}
 
 	log.Debugf("Get index template %s successfully:\n%s", id, body)
@@ -131,6 +135,7 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
+// resourceElasticsearchIndexTemplateDelete delete index template
 func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -156,9 +161,8 @@ func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta inter
 				log.Warnf("Index template %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete index template %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete index template %s: %s", id, res.String())
 
 		}
 	case *elastic6.Client:
@@ -179,13 +183,14 @@ func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta inter
 			return errors.Errorf("Error when delete index template %s: %s", id, res.String())
 		}
 	default:
-		return errors.New("Index template is only supported by the elastic library >= v6!")
+		return errors.New("Index template is only supported by the elastic library >= v6")
 	}
 
 	d.SetId("")
 	return nil
 }
 
+// createIndexTemplate create or update index template
 func createIndexTemplate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	template := d.Get("template").(string)
@@ -228,7 +233,7 @@ func createIndexTemplate(d *schema.ResourceData, meta interface{}) error {
 			return errors.Errorf("Error when add index template %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Index template is only supported by the elastic library >= v6!")
+		return errors.New("Index template is only supported by the elastic library >= v6")
 	}
 
 	return nil

@@ -82,7 +82,7 @@ func testCheckElasticsearchSecurityRoleMappingExists(name string) resource.TestC
 				return errors.Errorf("Error when get role mapping %s: %s", rs.Primary.ID, res.String())
 			}
 		default:
-			return errors.New("Role mapping is only supported by the elastic library >= v6!")
+			return errors.New("Role mapping is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -134,7 +134,7 @@ func testCheckElasticsearchSecurityRoleMappingDestroy(s *terraform.State) error 
 				}
 			}
 		default:
-			return errors.New("Role mapping is only supported by the elastic library >= v6!")
+			return errors.New("Role mapping is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Role mapping %q still exists", rs.Primary.ID)

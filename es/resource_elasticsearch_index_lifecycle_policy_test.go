@@ -80,7 +80,7 @@ func testCheckElasticsearchIndexLifecyclePolicyExists(name string) resource.Test
 				return errors.Errorf("Error when get lifecycle policy %s: %s", rs.Primary.ID, res.String())
 			}
 		default:
-			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
+			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
 		}
 
 		return nil
@@ -129,7 +129,7 @@ func testCheckElasticsearchIndexLifecyclePolicyDestroy(s *terraform.State) error
 				}
 			}
 		default:
-			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6!")
+			return errors.New("Index Lifecycle Management is only supported by the elastic library >= v6")
 		}
 
 		return fmt.Errorf("Index lifecycle policy %q still exists", rs.Primary.ID)

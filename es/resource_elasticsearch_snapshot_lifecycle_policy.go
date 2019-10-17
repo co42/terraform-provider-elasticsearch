@@ -2,6 +2,7 @@
 // API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
 // Supported version:
 //  - v7
+
 package es
 
 import (
@@ -17,18 +18,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Snapshot repository object
+// SnapshotLifecyclePolicy object returned by API
 type SnapshotLifecyclePolicy map[string]*SnapshotLifecyclePolicyGet
+
+// SnapshotLifecyclePolicySpec is the snapshot lifecycle policy object
 type SnapshotLifecyclePolicySpec struct {
 	Schedule   string      `json:"schedule"`
 	Name       string      `json:"name"`
 	Repository string      `json:"repository"`
 	Configs    interface{} `json:"config,omitempty"`
 }
+
+// SnapshotLifecyclePolicyGet is the policy
 type SnapshotLifecyclePolicyGet struct {
 	Policy *SnapshotLifecyclePolicySpec `json:"policy"`
 }
 
+// resourceElasticsearchSnapshotLifecyclePolicy handle the snapshot lifecycle policy API call
 func resourceElasticsearchSnapshotLifecyclePolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceElasticsearchSnapshotLifecyclePolicyCreate,
@@ -66,6 +72,7 @@ func resourceElasticsearchSnapshotLifecyclePolicy() *schema.Resource {
 	}
 }
 
+// resourceElasticsearchSnapshotLifecyclePolicyCreate create snapshot lifecycle policy
 func resourceElasticsearchSnapshotLifecyclePolicyCreate(d *schema.ResourceData, meta interface{}) error {
 
 	name := d.Get("name").(string)
@@ -78,6 +85,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyCreate(d *schema.ResourceData, 
 	return resourceElasticsearchSnapshotLifecyclePolicyRead(d, meta)
 }
 
+// resourceElasticsearchSnapshotLifecyclePolicyUpdate update snapshot lifecycle policy
 func resourceElasticsearchSnapshotLifecyclePolicyUpdate(d *schema.ResourceData, meta interface{}) error {
 	err := createSnapshotLifecyclePolicy(d, meta)
 	if err != nil {
@@ -86,6 +94,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyUpdate(d *schema.ResourceData, 
 	return resourceElasticsearchSnapshotLifecyclePolicyRead(d, meta)
 }
 
+// resourceElasticsearchSnapshotLifecyclePolicyRead read snapshot lifecycle policy
 func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -110,16 +119,16 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 				log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", id, res.String())
+
 		}
 		b, err = ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
 	}
 
 	log.Debugf("Get snapshot lifecycle policy successfully:\n%s", string(b))
@@ -149,6 +158,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 	return nil
 }
 
+// resourceElasticsearchSnapshotLifecyclePolicyDelete delete snapshot lifecycle policy
 func resourceElasticsearchSnapshotLifecyclePolicyDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
@@ -175,12 +185,12 @@ func resourceElasticsearchSnapshotLifecyclePolicyDelete(d *schema.ResourceData, 
 				log.Warnf("Snapshot lifecycle policy %s not found - removing from state", id)
 				d.SetId("")
 				return nil
-			} else {
-				return errors.Errorf("Error when delete snapshot lifecycle policy %s: %s", id, res.String())
 			}
+			return errors.Errorf("Error when delete snapshot lifecycle policy %s: %s", id, res.String())
+
 		}
 	default:
-		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+		return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7")
 	}
 
 	d.SetId("")
@@ -193,7 +203,7 @@ func createSnapshotLifecyclePolicy(d *schema.ResourceData, meta interface{}) err
 	snapshotName := d.Get("snapshot_name").(string)
 	schedule := d.Get("schedule").(string)
 	repository := d.Get("repository").(string)
-	configs := optionalInterfaceJson(d.Get("configs").(string))
+	configs := optionalInterfaceJSON(d.Get("configs").(string))
 
 	snapshotLifecyclePolicy := &SnapshotLifecyclePolicySpec{
 		Name:       snapshotName,
@@ -229,7 +239,7 @@ func createSnapshotLifecyclePolicy(d *schema.ResourceData, meta interface{}) err
 			return errors.Errorf("Error when add snapshot lifecycle policy %s: %s", name, res.String())
 		}
 	default:
-		return errors.New("Snapshot lifecyle policy is only supported by the elastic library >= v7!")
+		return errors.New("Snapshot lifecyle policy is only supported by the elastic library >= v7")
 	}
 
 	return nil

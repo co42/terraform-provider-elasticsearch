@@ -89,4 +89,7 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test
+trial-license:
+	curl -XPOST -u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD} ${ELASTICSEARCH_URLS}/_license/start_trial?acknowledge=true
+
+.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test trial-license
