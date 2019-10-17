@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -51,6 +53,18 @@ func Provider() terraform.ResourceProvider {
 				Default:     false,
 				Description: "Disable SSL verification of API calls",
 			},
+			"retry": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     6,
+				Description: "Nummber time it retry connexion before failed",
+			},
+			"wait_before_retry": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     10,
+				Description: "Wait time in second before retry connexion",
+			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -81,6 +95,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	cacertFile := d.Get("cacert_file").(string)
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
+	retry := d.Get("retry").(int)
+	waitBeforeRetry := d.Get("wait_before_retry").(int)
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{},
 	}
@@ -118,12 +134,24 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	// Test connexion and check elastic version to use the right Version
-	res, err := client.API.Info(
-		client.API.Info.WithContext(context.Background()),
-	)
-	if err != nil {
-		return nil, err
+	nbFailed := 0
+	isOnline := false
+	var res *esapi.Response
+	for isOnline == false {
+		res, err = client.API.Info(
+			client.API.Info.WithContext(context.Background()),
+		)
+		if err == nil && res.IsError() == false {
+			isOnline = true
+		} else {
+			if nbFailed == retry {
+				return nil, err
+			}
+			nbFailed++
+			time.Sleep(time.Duration(waitBeforeRetry) * time.Second)
+		}
 	}
+
 	defer res.Body.Close()
 	if res.IsError() {
 		return nil, errors.Errorf("Error when get info about Elasticsearch client: %s", res.String())
