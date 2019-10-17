@@ -27,6 +27,12 @@ func TestAccElasticsearchSecurityRole(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchSecurityRoleUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSecurityRoleExists("elasticsearch_role.test"),
+				),
+			},
+			{
 				ResourceName:            "elasticsearch_role.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -104,8 +110,23 @@ resource "elasticsearch_role" "test" {
 	  privileges = ["read"]
   }
   indices {
+	  names = ["app-*"]
+	  privileges = ["read"]
+  }
+  cluster = ["all"]
+}
+`
+
+var testElasticsearchSecurityRoleUpdate = `
+resource "elasticsearch_role" "test" {
+  name = "terraform-test"
+  indices {
 	  names = ["logstash-*"]
-	  privileges = ["read2"]
+	  privileges = ["write"]
+  }
+  indices {
+	  names = ["app-*"]
+	  privileges = ["read"]
   }
   cluster = ["all"]
 }

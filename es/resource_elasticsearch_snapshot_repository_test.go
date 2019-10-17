@@ -27,6 +27,12 @@ func TestAccElasticsearchSnapshotRepository(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchSnapshotRepositoryUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSnapshotRepositoryExists("elasticsearch_snapshot_repository.test"),
+				),
+			},
+			{
 				ResourceName:      "elasticsearch_snapshot_repository.test",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -101,6 +107,17 @@ resource "elasticsearch_snapshot_repository" "test" {
   type 		= "fs"
   settings 	= {
 	"location" =  "/tmp"
+  }
+}
+`
+
+var testElasticsearchSnapshotRepositoryUpdate = `
+resource "elasticsearch_snapshot_repository" "test" {
+  name		= "terraform-test"
+  type 		= "fs"
+  settings 	= {
+	"location" =  "/tmp"
+	"test"	= "test"
   }
 }
 `

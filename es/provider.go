@@ -134,8 +134,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	version := data["version"].(map[string]interface{})["number"].(string)
 	log.Debugf("Server: %s", version)
 
-	if version < "7.0.0" {
-		return nil, errors.Errorf("ElasticSearch is older than 7.0.0 (%s), you need to use the right version of elasticsearch provider", version)
+	if version < "7.0.0" || version >= "8.0.0" {
+		return nil, errors.Errorf("ElasticSearch version is not 7.x (%s), you need to use the right version of elasticsearch provider", version)
 	}
 
 	return client, nil

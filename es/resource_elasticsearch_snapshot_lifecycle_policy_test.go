@@ -30,6 +30,12 @@ func TestAccElasticsearchSnapshotLifecyclePolicy(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchSnapshotLifecyclePolicyUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSnapshotLifecyclePolicyExists("elasticsearch_snapshot_lifecycle_policy.test"),
+				),
+			},
+			{
 				ResourceName:            "elasticsearch_snapshot_lifecycle_policy.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -140,6 +146,31 @@ resource "elasticsearch_snapshot_lifecycle_policy" "test" {
   name			= "terraform-test"
   snapshot_name = "<daily-snap-{now/d}>"
   schedule 		= "0 30 1 * * ?"
+  repository    = "${elasticsearch_snapshot_repository.test.name}"
+  configs		= <<EOF
+{
+	"indices": ["test-*"],
+	"ignore_unavailable": false,
+	"include_global_state": false
+}
+EOF
+}
+`
+
+var testElasticsearchSnapshotLifecyclePolicyUpdate = `
+
+resource "elasticsearch_snapshot_repository" "test" {
+  name		= "test"
+  type 		= "fs"
+  settings 	= {
+	"location" =  "/tmp"
+  }
+}
+
+resource "elasticsearch_snapshot_lifecycle_policy" "test" {
+  name			= "terraform-test"
+  snapshot_name = "<daily-snap-{now/d}>"
+  schedule 		= "1 30 1 * * ?"
   repository    = "${elasticsearch_snapshot_repository.test.name}"
   configs		= <<EOF
 {

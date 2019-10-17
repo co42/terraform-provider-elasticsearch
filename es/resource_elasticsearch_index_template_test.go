@@ -28,6 +28,12 @@ func TestAccElasticsearchIndex(t *testing.T) {
 				),
 			},
 			{
+				Config: testElasticsearchIndexTemplateUpdate,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchIndexTemplateExists("elasticsearch_index_template.test"),
+				),
+			},
+			{
 				ResourceName:      "elasticsearch_index_template.test",
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -106,6 +112,25 @@ resource "elasticsearch_index_template" "test" {
   ],
   "settings": {
     "index.refresh_interval": "5s",
+	"index.lifecycle.name": "policy-logstash-backup",
+    "index.lifecycle.rollover_alias": "logstash-backup-alias"
+  },
+  "order": 2
+}
+EOF
+}
+`
+
+var testElasticsearchIndexTemplateUpdate = `
+resource "elasticsearch_index_template" "test" {
+  name 		= "terraform-test"
+  template 	= <<EOF
+{
+  "index_patterns": [
+    "test"
+  ],
+  "settings": {
+    "index.refresh_interval": "3s",
 	"index.lifecycle.name": "policy-logstash-backup",
     "index.lifecycle.rollover_alias": "logstash-backup-alias"
   },
