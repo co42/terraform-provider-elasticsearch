@@ -69,23 +69,6 @@ func suppressLicense(k, old, new string, d *schema.ResourceData) bool {
 	return reflect.DeepEqual(oldObj, newObj)
 }
 
-// diffSuppressIndexLifecyclePolicy permit to compare index lifecycle policy in the current state VS API
-func diffSuppressIndexLifecyclePolicy(k, old, new string, d *schema.ResourceData) bool {
-	var oo, no map[string]interface{}
-	if err := json.Unmarshal([]byte(old), &oo); err != nil {
-		return false
-	}
-	if err := json.Unmarshal([]byte(new), &no); err != nil {
-		return false
-	}
-
-	cleanOo := map[string]interface{}{
-		"policy": oo[d.Id()].(map[string]interface{})["policy"],
-	}
-
-	return reflect.DeepEqual(cleanOo, no)
-}
-
 // parseAllDotProperties permit to convert elasticsearch attributes with dot in sub structure
 func parseAllDotProperties(data map[string]interface{}) map[string]interface{} {
 
