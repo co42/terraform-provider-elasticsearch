@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/pkg/errors"
@@ -23,6 +22,12 @@ func TestAccElasticsearchSecurityUser(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testElasticsearchSecurityUser,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSecurityUserExists("elasticsearch_user.test"),
+				),
+			},
+			{
+				Config: testElasticsearchSecurityUserUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckElasticsearchSecurityUserExists("elasticsearch_user.test"),
 				),
@@ -49,40 +54,18 @@ func testCheckElasticsearchSecurityUserExists(name string) resource.TestCheckFun
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetUser(
-				client.API.XPack.SecurityGetUser.WithContext(context.Background()),
-				client.API.XPack.SecurityGetUser.WithPretty(),
-				client.API.XPack.SecurityGetUser.WithUsername(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get user %s: %s", rs.Primary.ID, res.String())
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetUser(
-				client.API.Security.GetUser.WithContext(context.Background()),
-				client.API.Security.GetUser.WithPretty(),
-				client.API.Security.GetUser.WithUsername(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get user %s: %s", rs.Primary.ID, res.String())
-			}
-		default:
-			return errors.New("User is only supported by the elastic library >= v6!")
+		client := meta.(*elastic.Client)
+		res, err := client.API.Security.GetUser(
+			client.API.Security.GetUser.WithContext(context.Background()),
+			client.API.Security.GetUser.WithPretty(),
+			client.API.Security.GetUser.WithUsername(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get user %s: %s", rs.Primary.ID, res.String())
 		}
 
 		return nil
@@ -97,44 +80,20 @@ func testCheckElasticsearchSecurityUserDestroy(s *terraform.State) error {
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		// v6
-		case *elastic6.Client:
-			client := meta.(*elastic6.Client)
-			res, err := client.API.XPack.SecurityGetUser(
-				client.API.XPack.SecurityGetUser.WithContext(context.Background()),
-				client.API.XPack.SecurityGetUser.WithPretty(),
-				client.API.XPack.SecurityGetUser.WithUsername(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
+		client := meta.(*elastic.Client)
+		res, err := client.API.Security.GetUser(
+			client.API.Security.GetUser.WithContext(context.Background()),
+			client.API.Security.GetUser.WithPretty(),
+			client.API.Security.GetUser.WithUsername(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
+				return nil
 			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-
-		// v7
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.Security.GetUser(
-				client.API.Security.GetUser.WithContext(context.Background()),
-				client.API.Security.GetUser.WithPretty(),
-				client.API.Security.GetUser.WithUsername(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-		default:
-			return errors.New("user is only supported by the elastic library >= v6!")
 		}
 
 		return fmt.Errorf("User %q still exists", rs.Primary.ID)
@@ -150,6 +109,17 @@ resource "elasticsearch_user" "test" {
   email 	= "no@no.no"
   full_name = "test"
   password 	= "changeme"
+  roles 	= ["kibana_user"]
+}
+`
+
+var testElasticsearchSecurityUserUpdate = `
+resource "elasticsearch_user" "test" {
+  username 	= "terraform-test"
+  enabled 	= "true"
+  email 	= "no@no.no"
+  full_name = "test2"
+  password 	= "changeme2"
   roles 	= ["kibana_user"]
 }
 `

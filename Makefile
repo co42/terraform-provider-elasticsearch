@@ -2,6 +2,9 @@ TEST?=./...
 PKG_NAME=es
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
+ELASTICSEARCH_URLS ?= http://127.0.0.1:9200
+ELASTICSEARCH_USERNAME ?= elastic
+ELASTICSEARCH_PASSWORD ?= changeme
 
 default: build
 
@@ -16,7 +19,7 @@ test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
 
 testacc: fmt fmtcheck
-	TF_ACC=1 go test $(TEST) -v -count 1 -parallel 1 $(TESTARGS) -timeout 120m
+	ELASTICSEARCH_URLS=${ELASTICSEARCH_URLS} ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME} ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD} TF_ACC=1 go test $(TEST) -v -count 1 -parallel 1 -race -coverprofile=coverage.txt -covermode=atomic $(TESTARGS) -timeout 120m
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -86,4 +89,7 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test
+trial-license:
+	curl -XPOST -u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD} ${ELASTICSEARCH_URLS}/_license/start_trial?acknowledge=true
+
+.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test trial-license

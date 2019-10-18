@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	elastic6 "github.com/elastic/go-elasticsearch/v6"
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
+	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/pathorcontents"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -18,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Provider permiit to init the terraform provider
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -51,6 +53,18 @@ func Provider() terraform.ResourceProvider {
 				Default:     false,
 				Description: "Disable SSL verification of API calls",
 			},
+			"retry": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     6,
+				Description: "Nummber time it retry connexion before failed",
+			},
+			"wait_before_retry": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     10,
+				Description: "Wait time in second before retry connexion",
+			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -69,11 +83,11 @@ func Provider() terraform.ResourceProvider {
 	}
 }
 
+// providerConfigure permit to initialize the rest client to access on Elasticsearch API
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	var (
-		relevantClient interface{}
-		data           map[string]interface{}
+		data map[string]interface{}
 	)
 
 	URLs := strings.Split(d.Get("urls").(string), ",")
@@ -81,19 +95,21 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	cacertFile := d.Get("cacert_file").(string)
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
+	retry := d.Get("retry").(int)
+	waitBeforeRetry := d.Get("wait_before_retry").(int)
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{},
 	}
 	// Checks is valid URLs
-	for _, rawUrl := range URLs {
-		_, err := url.Parse(rawUrl)
+	for _, rawURL := range URLs {
+		_, err := url.Parse(rawURL)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Intialise connexion
-	cfg := elastic7.Config{
+	cfg := elastic.Config{
 		Addresses: URLs,
 	}
 	if username != "" && password != "" {
@@ -112,18 +128,30 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		transport.TLSClientConfig.RootCAs = caCertPool
 	}
 	cfg.Transport = transport
-	client, err := elastic7.NewClient(cfg)
+	client, err := elastic.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	// Test connexion and check elastic version to use the right Version
-	res, err := client.API.Info(
-		client.API.Info.WithContext(context.Background()),
-	)
-	if err != nil {
-		return nil, err
+	nbFailed := 0
+	isOnline := false
+	var res *esapi.Response
+	for isOnline == false {
+		res, err = client.API.Info(
+			client.API.Info.WithContext(context.Background()),
+		)
+		if err == nil && res.IsError() == false {
+			isOnline = true
+		} else {
+			if nbFailed == retry {
+				return nil, err
+			}
+			nbFailed++
+			time.Sleep(time.Duration(waitBeforeRetry) * time.Second)
+		}
 	}
+
 	defer res.Body.Close()
 	if res.IsError() {
 		return nil, errors.Errorf("Error when get info about Elasticsearch client: %s", res.String())
@@ -134,39 +162,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	version := data["version"].(map[string]interface{})["number"].(string)
 	log.Debugf("Server: %s", version)
 
-	if version < "8.0.0" && version >= "7.0.0" {
-		log.Printf("[INFO] Using ES 7")
-		relevantClient = client
-	} else if version < "7.0.0" && version >= "6.0.0" {
-		log.Printf("[INFO] Using ES 6")
-
-		// Intialise connexion
-		cfg := elastic6.Config{
-			Addresses: URLs,
-		}
-		if username != "" && password != "" {
-			cfg.Username = username
-			cfg.Password = password
-		}
-		if insecure == true {
-			transport.TLSClientConfig.InsecureSkipVerify = true
-		}
-		// If a cacertFile has been specified, use that for cert validation
-		if cacertFile != "" {
-			caCert, _, _ := pathorcontents.Read(cacertFile)
-
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM([]byte(caCert))
-			transport.TLSClientConfig.RootCAs = caCertPool
-		}
-		cfg.Transport = transport
-		relevantClient, err = elastic6.NewClient(cfg)
-		if err != nil {
-			return nil, err
-		}
-	} else if version < "6.0.0" {
-		return nil, errors.New("ElasticSearch is older than 6.0.0!")
+	if version < "7.0.0" || version >= "8.0.0" {
+		return nil, errors.Errorf("ElasticSearch version is not 7.x (%s), you need to use the right version of elasticsearch provider", version)
 	}
 
-	return relevantClient, nil
+	return client, nil
 }

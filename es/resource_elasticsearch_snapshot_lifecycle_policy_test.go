@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	elastic7 "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v7"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -25,6 +25,12 @@ func TestAccElasticsearchSnapshotLifecyclePolicy(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testElasticsearchSnapshotLifecyclePolicy,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckElasticsearchSnapshotLifecyclePolicyExists("elasticsearch_snapshot_lifecycle_policy.test"),
+				),
+			},
+			{
+				Config: testElasticsearchSnapshotLifecyclePolicyUpdate,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckElasticsearchSnapshotLifecyclePolicyExists("elasticsearch_snapshot_lifecycle_policy.test"),
 				),
@@ -51,38 +57,32 @@ func testCheckElasticsearchSnapshotLifecyclePolicyExists(name string) resource.T
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.SlmGetLifecycle(
-				client.API.SlmGetLifecycle.WithContext(context.Background()),
-				client.API.SlmGetLifecycle.WithPretty(),
-				client.API.SlmGetLifecycle.WithPolicyID(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", rs.Primary.ID, res.String())
-			}
+		client := meta.(*elastic.Client)
+		res, err := client.API.SlmGetLifecycle(
+			client.API.SlmGetLifecycle.WithContext(context.Background()),
+			client.API.SlmGetLifecycle.WithPretty(),
+			client.API.SlmGetLifecycle.WithPolicyID(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			return errors.Errorf("Error when get snapshot lifecycle policy %s: %s", rs.Primary.ID, res.String())
+		}
 
-			// Manage Bug https://github.com/elastic/elasticsearch/issues/47664
-			b, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return err
-			}
-			snapshotLifecyclePolicy := make(SnapshotLifecyclePolicy)
-			err = json.Unmarshal(b, &snapshotLifecyclePolicy)
-			if err != nil {
-				return err
-			}
-			if len(snapshotLifecyclePolicy) == 0 {
-				return errors.Errorf("Error when get snapshot lifecycle policy %s: Policy not found", rs.Primary.ID)
-			}
-
-		default:
-			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+		// Manage Bug https://github.com/elastic/elasticsearch/issues/47664
+		b, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		snapshotLifecyclePolicy := make(SnapshotLifecyclePolicy)
+		err = json.Unmarshal(b, &snapshotLifecyclePolicy)
+		if err != nil {
+			return err
+		}
+		if len(snapshotLifecyclePolicy) == 0 {
+			return errors.Errorf("Error when get snapshot lifecycle policy %s: Policy not found", rs.Primary.ID)
 		}
 
 		return nil
@@ -97,38 +97,33 @@ func testCheckElasticsearchSnapshotLifecyclePolicyDestroy(s *terraform.State) er
 
 		meta := testAccProvider.Meta()
 
-		switch meta.(type) {
-		case *elastic7.Client:
-			client := meta.(*elastic7.Client)
-			res, err := client.API.SlmGetLifecycle(
-				client.API.SlmGetLifecycle.WithContext(context.Background()),
-				client.API.SlmGetLifecycle.WithPretty(),
-				client.API.SlmGetLifecycle.WithPolicyID(rs.Primary.ID),
-			)
-			if err != nil {
-				return err
-			}
-			defer res.Body.Close()
-			if res.IsError() {
-				if res.StatusCode == 404 {
-					return nil
-				}
-			}
-			// Manage Bug https://github.com/elastic/elasticsearch/issues/47664
-			b, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return err
-			}
-			snapshotLifecyclePolicy := make(SnapshotLifecyclePolicy)
-			err = json.Unmarshal(b, &snapshotLifecyclePolicy)
-			if err != nil {
-				return err
-			}
-			if len(snapshotLifecyclePolicy) == 0 {
+		client := meta.(*elastic.Client)
+		res, err := client.API.SlmGetLifecycle(
+			client.API.SlmGetLifecycle.WithContext(context.Background()),
+			client.API.SlmGetLifecycle.WithPretty(),
+			client.API.SlmGetLifecycle.WithPolicyID(rs.Primary.ID),
+		)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+		if res.IsError() {
+			if res.StatusCode == 404 {
 				return nil
 			}
-		default:
-			return errors.New("Snapshot lifecycle policy is only supported by the elastic library >= v7!")
+		}
+		// Manage Bug https://github.com/elastic/elasticsearch/issues/47664
+		b, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		snapshotLifecyclePolicy := make(SnapshotLifecyclePolicy)
+		err = json.Unmarshal(b, &snapshotLifecyclePolicy)
+		if err != nil {
+			return err
+		}
+		if len(snapshotLifecyclePolicy) == 0 {
+			return nil
 		}
 
 		return fmt.Errorf("Snapshot lifecycle policy %q still exists", rs.Primary.ID)
@@ -151,6 +146,31 @@ resource "elasticsearch_snapshot_lifecycle_policy" "test" {
   name			= "terraform-test"
   snapshot_name = "<daily-snap-{now/d}>"
   schedule 		= "0 30 1 * * ?"
+  repository    = "${elasticsearch_snapshot_repository.test.name}"
+  configs		= <<EOF
+{
+	"indices": ["test-*"],
+	"ignore_unavailable": false,
+	"include_global_state": false
+}
+EOF
+}
+`
+
+var testElasticsearchSnapshotLifecyclePolicyUpdate = `
+
+resource "elasticsearch_snapshot_repository" "test" {
+  name		= "test"
+  type 		= "fs"
+  settings 	= {
+	"location" =  "/tmp"
+  }
+}
+
+resource "elasticsearch_snapshot_lifecycle_policy" "test" {
+  name			= "terraform-test"
+  snapshot_name = "<daily-snap-{now/d}>"
+  schedule 		= "1 30 1 * * ?"
   repository    = "${elasticsearch_snapshot_repository.test.name}"
   configs		= <<EOF
 {
