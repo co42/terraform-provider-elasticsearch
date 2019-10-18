@@ -1,5 +1,7 @@
 /*
 Package main create Elasticsearch provider for Terraform
+
+Read the doc to use it: https://github.com/disaster37/terraform-provider-elasticsearch/tree/7.x
 */
 package main
 
