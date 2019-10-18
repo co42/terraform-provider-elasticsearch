@@ -1,9 +1,9 @@
 # terraform-provider-elasticsearch
 
-[![CircleCI](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master.svg?style=svg)](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/master)
+[![CircleCI](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/6.x.svg?style=svg)](https://circleci.com/gh/disaster37/terraform-provider-elasticsearch/tree/6.x)
 [![Go Report Card](https://goreportcard.com/badge/github.com/disaster37/terraform-provider-elasticsearch)](https://goreportcard.com/report/github.com/disaster37/terraform-provider-elasticsearch)
 [![GoDoc](https://godoc.org/github.com/disaster37/terraform-provider-elasticsearch?status.svg)](http://godoc.org/github.com/disaster37/terraform-provider-elasticsearch)
-[![codecov](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/master/graph/badge.svg)](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch)
+[![codecov](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/6.x/graph/badge.svg)](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/6.x)
 
 This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
 
@@ -48,6 +48,8 @@ provider "elasticsearch" {
 - **password**: (optional) The password to connect on it.
 - **insecure**: (optional) To disable the certificate check.
 - **cacert_file**: (optional) The CA contend to use if you use custom PKI.
+- **retry**: (optional) The number of time you should to retry connexion befaore exist with error. Default to `6`.
+- **wait_before_retry**: (optional) The number of time in second we wait before each connexion retry. Default to `10`.
 
 ___
 
@@ -296,39 +298,6 @@ resource "elasticsearch_snapshot_repository" "test" {
 
 ___
 
-### Snapshot lifecycle policy resource
-
-This resource permit to manage snapshot lifecyle policy.
-You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/slm-api-put.html
-
-***Supported Elasticsearch version:***
-  - v7
-
-***Sample:***
-```tf
-resource "elasticsearch_snapshot_lifecycle_policy" "test" {
-  name			= "terraform-test"
-  snapshot_name = "<daily-snap-{now/d}>"
-  schedule 		= "0 30 1 * * ?"
-  repository    = "${elasticsearch_snapshot_repository.test.name}"
-  configs		= <<EOF
-{
-	"indices": ["test-*"],
-	"ignore_unavailable": false,
-	"include_global_state": false
-}
-EOF
-}
-```
-
-***The following arguments are supported:***
-  - **name**: (required) Identifier for the policy.
-  - **snapshot_name**: (required) A name automatically given to each snapshot performed by this policy.
-  - **schedule**: (required) A periodic or absolute time schedule.
-  - **repository**: (required) The snapshot repository that will contain snapshots created by this policy.
-  - **configs**: (optional) Configuration for each snapshot that will be created by this policy. It's a string as JSON object.
-
-___
 
 ### Watcher resource
 
@@ -426,7 +395,7 @@ See LICENSE.
 ## Contributing
 
 1. Fork it ( https://github.com/disaster37/terraform-provider-elasticsearch/fork )
-2. Go to develop branch (`git checkout develop`)
+2. Go to the right branch (7.x for Elasticsearch 7 or 6.x for Elasticsearch 6) (`git checkout 6.x`)
 3. Create your feature branch (`git checkout -b my-new-feature`)
 4. Add feature, add acceptance test and tets your code (`ELASTICSEARCH_URLS=http://127.0.0.1:9200 ELASTICSEARCH_USERNAME=elastic ELASTICSEARCH_PASSWORD=changeme make testacc`)
 5. Commit your changes (`git commit -am 'Add some feature'`)
