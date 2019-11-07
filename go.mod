@@ -1,4 +1,4 @@
-module github.com/disaster37/terraform-provider-elasticsearch
+module github.com/disaster37/terraform-provider-elasticsearch/v6
 
 go 1.12
 
