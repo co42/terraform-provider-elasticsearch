@@ -6,7 +6,7 @@ Read the doc to use it: https://github.com/disaster37/terraform-provider-elastic
 package main
 
 import (
-	"github.com/disaster37/terraform-provider-elasticsearch/es"
+	"github.com/disaster37/terraform-provider-elasticsearch/v7/es"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 )
 
