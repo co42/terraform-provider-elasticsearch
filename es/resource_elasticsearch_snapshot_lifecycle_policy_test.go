@@ -154,6 +154,13 @@ resource "elasticsearch_snapshot_lifecycle_policy" "test" {
 	"include_global_state": false
 }
 EOF
+  retention     = <<EOF
+{
+    "expire_after": "7d",
+    "min_count": 5,
+    "max_count": 10
+} 
+EOF
 }
 `
 
@@ -178,6 +185,13 @@ resource "elasticsearch_snapshot_lifecycle_policy" "test" {
 	"ignore_unavailable": false,
 	"include_global_state": false
 }
+EOF
+  retention     = <<EOF
+{
+    "expire_after": "7d",
+    "min_count": 5,
+    "max_count": 10
+} 
 EOF
 }
 `

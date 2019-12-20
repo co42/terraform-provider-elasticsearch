@@ -27,6 +27,7 @@ type SnapshotLifecyclePolicySpec struct {
 	Name       string      `json:"name"`
 	Repository string      `json:"repository"`
 	Configs    interface{} `json:"config,omitempty"`
+	Retention  interface{} `json:"retention,omitempty"`
 }
 
 // SnapshotLifecyclePolicyGet is the policy
@@ -65,6 +66,10 @@ func resourceElasticsearchSnapshotLifecyclePolicy() *schema.Resource {
 				Required: true,
 			},
 			"configs": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"retention": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -147,6 +152,7 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 	d.Set("schedule", snapshotLifecyclePolicy[id].Policy.Schedule)
 	d.Set("repository", snapshotLifecyclePolicy[id].Policy.Repository)
 	d.Set("configs", snapshotLifecyclePolicy[id].Policy.Configs)
+	d.Set("retention", snapshotLifecyclePolicy[id].Policy.Retention)
 
 	return nil
 }
@@ -191,12 +197,14 @@ func createSnapshotLifecyclePolicy(d *schema.ResourceData, meta interface{}) err
 	schedule := d.Get("schedule").(string)
 	repository := d.Get("repository").(string)
 	configs := optionalInterfaceJSON(d.Get("configs").(string))
+	retention := optionalInterfaceJSON(d.Get("retention").(string))
 
 	snapshotLifecyclePolicy := &SnapshotLifecyclePolicySpec{
 		Name:       snapshotName,
 		Schedule:   schedule,
 		Repository: repository,
 		Configs:    configs,
+		Retention:  retention,
 	}
 
 	b, err := json.Marshal(snapshotLifecyclePolicy)
