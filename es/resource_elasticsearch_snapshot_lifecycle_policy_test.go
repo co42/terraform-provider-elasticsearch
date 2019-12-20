@@ -39,7 +39,7 @@ func TestAccElasticsearchSnapshotLifecyclePolicy(t *testing.T) {
 				ResourceName:            "elasticsearch_snapshot_lifecycle_policy.test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"configs"},
+				ImportStateVerifyIgnore: []string{"configs", "retention"},
 			},
 		},
 	})
