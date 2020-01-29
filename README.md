@@ -15,7 +15,7 @@ We fork this project for the following items:
 
 ## Installation
 
-[Download a binary](https://github.com/phillbaker/terraform-provider-elasticsearch/releases), and put it in a good spot on your system. Then update your `~/.terraformrc` to refer to the binary:
+[Download a binary](https://github.com/disaster37/terraform-provider-elasticsearch/releases), and put it in a good spot on your system. Then update your `~/.terraformrc` to refer to the binary:
 
 ```hcl
 providers {
@@ -50,6 +50,7 @@ provider "elasticsearch" {
 - **cacert_file**: (optional) The CA contend to use if you use custom PKI.
 - **retry**: (optional) The number of time you should to retry connexion befaore exist with error. Default to `6`.
 - **wait_before_retry**: (optional) The number of time in second we wait before each connexion retry. Default to `10`.
+- **debug**: (optional) To display debug logs
 
 ___
 

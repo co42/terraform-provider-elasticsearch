@@ -66,6 +66,12 @@ func Provider() terraform.ResourceProvider {
 				Default:     10,
 				Description: "Wait time in second before retry connexion",
 			},
+			"debug": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Enable debug log level in provider",
+			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -99,6 +105,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	waitBeforeRetry := d.Get("wait_before_retry").(int)
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{},
+	}
+	debug := d.Get("debug").(bool)
+
+	if debug {
+		log.SetLevel(log.DebugLevel)
 	}
 	// Checks is valid URLs
 	for _, rawURL := range URLs {
@@ -143,11 +154,14 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		)
 		if err == nil && res.IsError() == false {
 			isOnline = true
+			log.Debug("Connexion ok")
 		} else {
 			if nbFailed == retry {
+				log.Debug("Connexion failed, end of retry, we exit")
 				return nil, err
 			}
 			nbFailed++
+			log.Debug("Connexion failed, retry")
 			time.Sleep(time.Duration(waitBeforeRetry) * time.Second)
 		}
 	}
