@@ -7,13 +7,13 @@ orbs:
 jobs:
   test:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.15
         environment:
           - GO111MODULE: "on"
           - ELASTICSEARCH_URLS: "http://es:9200"
           - ELASTICSEARCH_USERNAME: "elastic"
           - ELASTICSEARCH_PASSWORD: "changeme"
-      - image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+      - image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
         name: es
         environment:
           - cluster.name: "test"
@@ -38,7 +38,7 @@ jobs:
           flags: unittest
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.15
         environment:
           - GO111MODULE: "on"
     working_directory: /go/src/github.com/disaster37/terraform-provider-elasticsearch
@@ -47,7 +47,7 @@ jobs:
       - run: make build
   release:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.15
         environment:
           - GO111MODULE: "on"
           - GITHUB_TOKEN: $GITHUB_TOKEN
