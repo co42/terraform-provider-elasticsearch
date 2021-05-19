@@ -36,11 +36,12 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 		no["aliases"] = make(map[string]interface{})
 	}
 
-	os, _ := string(json.Marshal(oo[d.Id()]))
-	ns, _ := string(json.Marshal(parseAllDotProperties(no)))
+	ob, _ := json.Marshal(oo[d.Id()])
+	nb, _ := json.Marshal(parseAllDotProperties(no))
 
-	log.Debugf("Old: %s", os)
-	log.Debugf("New: %s", ns)
+
+	log.Debugf("Old: %s", string(ob))
+	log.Debugf("New: %s", string(nb))
 
 	return reflect.DeepEqual(oo[d.Id()], parseAllDotProperties(no))
 }
