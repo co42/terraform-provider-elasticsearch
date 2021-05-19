@@ -19,6 +19,12 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 		return false
 	}
 
+	// Go under first level to compare
+	for key, data := range no {
+		no = data
+		break
+	}
+
 	// Add default parameters on new index template if needed
 	if _, ok := no["order"]; !ok {
 		no["order"] = 0
