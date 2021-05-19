@@ -21,7 +21,7 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 
 	// Go under first level to compare
 	for key, data := range no {
-		no = data
+		no = data.(map[string]interface{})
 		break
 	}
 
