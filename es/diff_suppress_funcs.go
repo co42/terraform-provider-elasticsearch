@@ -19,8 +19,7 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 		return false
 	}
 
-	log.Debugf("Old: %s", old)
-	log.Debugf("New: %s", new)
+	
 
 
 	// Add default parameters on new index template if needed
@@ -36,6 +35,12 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 	if _, ok := no["aliases"]; !ok {
 		no["aliases"] = make(map[string]interface{})
 	}
+
+	os, _ = string(json.Marshal(oo[d.Id()]))
+	ns, _ = string(json.Marshal(parseAllDotProperties(no)))
+
+	log.Debugf("Old: %s", os)
+	log.Debugf("New: %s", ns)
 
 	return reflect.DeepEqual(oo[d.Id()], parseAllDotProperties(no))
 }
