@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -145,12 +145,40 @@ func resourceElasticsearchWatcherRead(d *schema.ResourceData, meta interface{}) 
 	log.Debugf("Watcher %+v", watcherSpec)
 
 	d.Set("name", id)
-	d.Set("trigger", watcherSpec.Trigger)
-	d.Set("input", watcherSpec.Trigger)
-	d.Set("condition", watcherSpec.Condition)
-	d.Set("actions", watcherSpec.Actions)
-	d.Set("metadata", watcherSpec.Metadata)
-	d.Set("throttle_period", watcherSpec.ThrottlePeriod)
+
+	flattenTrigger, err := convertInterfaceToJsonString(watcherSpec.Trigger)
+	if err != nil {
+		return err
+	}
+	d.Set("trigger", flattenTrigger)
+
+	flattenInput, err := convertInterfaceToJsonString(watcherSpec.Input)
+	if err != nil {
+		return err
+	}
+	d.Set("input", flattenInput)
+
+	flattenCondition, err := convertInterfaceToJsonString(watcherSpec.Condition)
+	if err != nil {
+		return err
+	}
+	d.Set("condition", flattenCondition)
+
+	flattenActions, err := convertInterfaceToJsonString(watcherSpec.Actions)
+	if err != nil {
+		return err
+	}
+	d.Set("actions", flattenActions)
+
+	flattenMetadata, err := convertInterfaceToJsonString(watcherSpec.Metadata)
+	if err != nil {
+		return err
+	}
+	d.Set("metadata", flattenMetadata)
+
+	if watcherSpec.ThrottlePeriod != "" {
+		d.Set("throttle_period", watcherSpec.ThrottlePeriod)
+	}
 
 	log.Infof("Read watcher %s successfully", id)
 

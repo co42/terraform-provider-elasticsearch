@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -101,11 +101,19 @@ func resourceElasticsearchIndexLifecyclePolicyRead(d *schema.ResourceData, meta 
 		return err
 	}
 	policy := policyTemp[id].(map[string]interface{})["policy"]
+	policyTemp = map[string]interface{}{
+		"policy": policy,
+	}
 
-	log.Debugf("Policy : %+v", policy)
+	log.Debugf("Policy : %+v", policyTemp)
 
 	d.Set("name", id)
-	d.Set("policy", policy)
+
+	flattenPolicy, err := convertInterfaceToJsonString(policyTemp)
+	if err != nil {
+		return err
+	}
+	d.Set("policy", flattenPolicy)
 	return nil
 }
 

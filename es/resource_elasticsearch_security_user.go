@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -82,7 +82,6 @@ func resourceElasticsearchSecurityUser() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "{}",
 				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
@@ -150,7 +149,12 @@ func resourceElasticsearchSecurityUserRead(d *schema.ResourceData, meta interfac
 	d.Set("email", user[id].Email)
 	d.Set("full_name", user[id].FullName)
 	d.Set("roles", user[id].Roles)
-	d.Set("metadata", user[id].Metadata)
+
+	flattenMetadata, err := convertInterfaceToJsonString(user[id].Metadata)
+	if err != nil {
+		return err
+	}
+	d.Set("metadata", flattenMetadata)
 
 	log.Infof("Read user %s successfully", id)
 

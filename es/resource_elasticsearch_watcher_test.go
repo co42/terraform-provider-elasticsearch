@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -117,6 +117,8 @@ EOF
         "indices" : [
           "logstash*"
         ],
+		"search_type": "query_then_fetch",
+		"rest_total_hits_as_int": true,
         "body" : {
           "query" : {
             "bool" : {
@@ -149,7 +151,8 @@ EOF
 {
 	"email_admin" : {
       "email" : {
-        "to" : "admin@domain.host.com",
+		"profile": "standard",
+        "to" : ["admin@domain.host.com"],
         "subject" : "404 recently encountered"
       }
     }
@@ -173,6 +176,8 @@ EOF
         "indices" : [
           "logstash*"
         ],
+		"search_type": "query_then_fetch",
+		"rest_total_hits_as_int": true,
         "body" : {
           "query" : {
             "bool" : {
@@ -205,7 +210,8 @@ EOF
 {
 	"email_admin" : {
       "email" : {
-        "to" : "admin@domain.host.com",
+		"profile" : "standard",
+        "to" : ["admin@domain.host.com"],
         "subject" : "404 recently encountered"
       }
     }
