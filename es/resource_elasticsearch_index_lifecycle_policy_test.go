@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/pkg/errors"
 )
 
@@ -120,7 +120,9 @@ resource "elasticsearch_index_lifecycle_policy" "test" {
       "delete": {
         "min_age": "30d",
         "actions": {
-          "delete": {}
+          "delete": {
+			"delete_searchable_snapshot": true
+		  }
         }
       }
     }
@@ -148,7 +150,9 @@ resource "elasticsearch_index_lifecycle_policy" "test" {
       "delete": {
         "min_age": "31d",
         "actions": {
-          "delete": {}
+          "delete": {
+			"delete_searchable_snapshot": true
+		  }
         }
       }
     }

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,9 +18,6 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 	if err := json.Unmarshal([]byte(new), &no); err != nil {
 		return false
 	}
-
-	
-
 
 	// Add default parameters on new index template if needed
 	if _, ok := no["order"]; !ok {
@@ -38,7 +35,6 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 
 	ob, _ := json.Marshal(oo[d.Id()])
 	nb, _ := json.Marshal(parseAllDotProperties(no))
-
 
 	log.Debugf("Old: %s", string(ob))
 	log.Debugf("New: %s", string(nb))

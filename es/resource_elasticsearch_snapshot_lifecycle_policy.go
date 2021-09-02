@@ -13,7 +13,7 @@ import (
 	"io/ioutil"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -66,12 +66,14 @@ func resourceElasticsearchSnapshotLifecyclePolicy() *schema.Resource {
 				Required: true,
 			},
 			"configs": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"retention": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
@@ -151,8 +153,18 @@ func resourceElasticsearchSnapshotLifecyclePolicyRead(d *schema.ResourceData, me
 	d.Set("snapshot_name", snapshotLifecyclePolicy[id].Policy.Name)
 	d.Set("schedule", snapshotLifecyclePolicy[id].Policy.Schedule)
 	d.Set("repository", snapshotLifecyclePolicy[id].Policy.Repository)
-	d.Set("configs", snapshotLifecyclePolicy[id].Policy.Configs)
-	d.Set("retention", snapshotLifecyclePolicy[id].Policy.Retention)
+
+	flattenConfigs, err := convertInterfaceToJsonString(snapshotLifecyclePolicy[id].Policy.Configs)
+	if err != nil {
+		return err
+	}
+	d.Set("configs", flattenConfigs)
+
+	flattenRetention, err := convertInterfaceToJsonString(snapshotLifecyclePolicy[id].Policy.Retention)
+	if err != nil {
+		return err
+	}
+	d.Set("retention", flattenRetention)
 
 	return nil
 }

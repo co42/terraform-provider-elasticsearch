@@ -16,3 +16,10 @@
 
 dist/
 coverage.txt
+
+# terraform
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+.terraform
+registry/

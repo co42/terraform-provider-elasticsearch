@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -68,7 +68,6 @@ func resourceElasticsearchSecurityRoleMapping() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "{}",
 				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
@@ -133,8 +132,16 @@ func resourceElasticsearchSecurityRoleMappingRead(d *schema.ResourceData, meta i
 	d.Set("name", id)
 	d.Set("enabled", roleMapping[id].Enabled)
 	d.Set("roles", roleMapping[id].Roles)
-	d.Set("rules", roleMapping[id].Rules)
-	d.Set("metadata", roleMapping[id].Metadata)
+	flattenRules, err := convertInterfaceToJsonString(roleMapping[id].Rules)
+	if err != nil {
+		return err
+	}
+	d.Set("rules", flattenRules)
+	flattenMetadata, err := convertInterfaceToJsonString(roleMapping[id].Metadata)
+	if err != nil {
+		return err
+	}
+	d.Set("metadata", flattenMetadata)
 
 	log.Infof("Read role mapping %s successfully", id)
 	return nil

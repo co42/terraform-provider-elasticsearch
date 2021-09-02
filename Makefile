@@ -92,4 +92,15 @@ endif
 trial-license:
 	curl -XPOST -u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD} ${ELASTICSEARCH_URLS}/_license/start_trial?acknowledge=true
 
-.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test trial-license
+start-pods: clean-pods
+	kubectl run elasticsearch --image docker.elastic.co/elasticsearch/elasticsearch:7.5.1 --port "9200" --expose --env "cluster.name=test" --env "discovery.type=single-node" --env "ELASTIC_PASSWORD=changeme" --env "xpack.security.enabled=true" --env "ES_JAVA_OPTS=-Xms512m -Xmx512m" --env "path.repo=/tmp" --limits "cpu=500m,memory=1024Mi"
+
+clean-pods:
+	kubectl delete --ignore-not-found pod/elasticsearch
+	kubectl delete --ignore-not-found service/elasticsearch
+
+local-build:
+	mkdir -p registry/registry.terraform.io/disaster37/elasticsearch/1.0.0/linux_amd64
+	go build -o registry/registry.terraform.io/disaster37/elasticsearch/1.0.0/linux_amd64/terraform-provider-elasticsearch
+
+.PHONY: build gen sweep test testacc fmt fmtcheck lint tools test-compile website website-lint website-test trial-license start-pods clean-pods local-build

@@ -12,9 +12,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"reflect"
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -86,7 +87,6 @@ func resourceElasticsearchSecurityRole() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "{}",
 				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"indices": {
@@ -111,13 +111,11 @@ func resourceElasticsearchSecurityRole() *schema.Resource {
 						"query": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							Default:          "{}",
 							DiffSuppressFunc: suppressEquivalentJSON,
 						},
 						"field_security": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							Default:          "{}",
 							DiffSuppressFunc: suppressEquivalentJSON,
 						},
 					},
@@ -210,12 +208,24 @@ func resourceElasticsearchSecurityRoleRead(d *schema.ResourceData, meta interfac
 	log.Debugf("Role %+v", role)
 
 	d.Set("name", id)
-	d.Set("indices", role[id].Indices)
+
+	flattenIndices, err := flattenIndicesMapping(role[id].Indices)
+	if err := d.Set("indices", flattenIndices); err != nil {
+		return fmt.Errorf("error setting indices: %w", err)
+	}
 	d.Set("cluster", role[id].Cluster)
-	d.Set("applications", role[id].Applications)
+
+	if err := d.Set("applications", flattenApplicationsMapping(role[id].Applications)); err != nil {
+		return fmt.Errorf("error setting applications: %w", err)
+	}
 	d.Set("global", role[id].Global)
 	d.Set("run_as", role[id].RunAs)
-	d.Set("metadata", role[id].Metadata)
+
+	flattenMetdata, err := convertInterfaceToJsonString(role[id].Metadata)
+	if err != nil {
+		return err
+	}
+	d.Set("metadata", flattenMetdata)
 
 	log.Infof("Read role %s successfully", id)
 
@@ -361,4 +371,77 @@ func buildRolesApplicationPrivileges(raws []interface{}) []RoleApplicationPrivil
 	}
 
 	return rolesApplicationPrivileges
+}
+
+func flattenIndiceMapping(indice RoleIndicesPermissions) (map[string]interface{}, error) {
+	if reflect.ValueOf(indice).IsZero() {
+		return nil, nil
+	}
+
+	tfMap := make(map[string]interface{})
+	tfMap["names"] = indice.Names
+	tfMap["privileges"] = indice.Privileges
+
+	if indice.Query != nil {
+		queryB, err := json.Marshal(indice.Query)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["query"] = string(queryB)
+	}
+
+	if indice.FieldSecurity != nil {
+		fiedlSecurityB, err := json.Marshal(indice.FieldSecurity)
+		if err != nil {
+			return nil, err
+		}
+		tfMap["field_security"] = string(fiedlSecurityB)
+	}
+
+	return tfMap, nil
+}
+
+func flattenIndicesMapping(indices []RoleIndicesPermissions) ([]interface{}, error) {
+	if indices == nil {
+		return nil, nil
+	}
+
+	tfList := make([]interface{}, 0, len(indices))
+
+	for _, indice := range indices {
+		flattenIndices, err := flattenIndiceMapping(indice)
+		if err != nil {
+			return nil, err
+		}
+		tfList = append(tfList, flattenIndices)
+	}
+
+	return tfList, nil
+
+}
+
+func flattenApplicationMapping(application RoleApplicationPrivileges) map[string]interface{} {
+	if reflect.ValueOf(application).IsZero() {
+		return nil
+	}
+
+	tfMap := make(map[string]interface{})
+	tfMap["application"] = application.Application
+	tfMap["privileges"] = application.Privileges
+	tfMap["resources"] = application.Resources
+
+	return tfMap
+}
+
+func flattenApplicationsMapping(applications []RoleApplicationPrivileges) []interface{} {
+	if applications == nil {
+		return nil
+	}
+
+	tfList := make([]interface{}, 0, len(applications))
+	for _, application := range applications {
+		tfList = append(tfList, flattenApplicationMapping(application))
+	}
+
+	return tfList
 }
