@@ -105,7 +105,19 @@ func parseDotPropertie(key string, value interface{}, result map[string]interfac
 	}
 
 	// Fix `limit` filed is string, not number on ES response
-	if key == "limit" && reflect.ValueOf(value).Kind() == reflect.Float64 {
-		result[key] = strconv.Itoa(int(value.(float64)))
+	converFields := []string {
+		"limit",
+		"number_of_routing_shards",
+		"number_of_replicas",
+		"number_of_shards",
 	}
+	for _, field := range converFields {
+		if key == field {
+			if reflect.ValueOf(value).Kind() == reflect.Float64 {
+				result[key] = strconv.Itoa(int(value.(float64)))
+			}
+			break
+		}
+	}
+	
 }
