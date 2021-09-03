@@ -8,6 +8,7 @@ package es
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -93,11 +94,19 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	body := string(b)
+	var indexTemplate map[string]interface{}
+	if err := json.Unmarshal(b, &indexTemplate); err != nil {
+		return err
+	}
 
-	log.Debugf("Get index template %s successfully:\n%s", id, body)
+	indexTemplateJSON, err := json.Marshal(indexTemplate[id])
+	if err != nil {
+		return err
+	}
+
+	log.Debugf("Get index template %s successfully:%+v", id, string(indexTemplateJSON))
 	d.Set("name", d.Id())
-	d.Set("template", body)
+	d.Set("template", string(indexTemplateJSON))
 	return nil
 }
 

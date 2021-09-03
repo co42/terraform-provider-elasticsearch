@@ -3,6 +3,7 @@ package es
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,13 +34,13 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 		no["aliases"] = make(map[string]interface{})
 	}
 
-	ob, _ := json.Marshal(oo[d.Id()])
+	ob, _ := json.Marshal(oo)
 	nb, _ := json.Marshal(parseAllDotProperties(no))
 
 	log.Debugf("Old: %s", string(ob))
 	log.Debugf("New: %s", string(nb))
 
-	return reflect.DeepEqual(oo[d.Id()], parseAllDotProperties(no))
+	return reflect.DeepEqual(oo, parseAllDotProperties(no))
 }
 
 // suppressEquivalentJSON permit to compare state store as JSON string
@@ -101,5 +102,10 @@ func parseDotPropertie(key string, value interface{}, result map[string]interfac
 		parseDotPropertie(strings.Join(listKey[1:], "."), value, result[listKey[0]].(map[string]interface{}))
 	} else {
 		result[key] = value
+	}
+
+	// Fix `limit` filed is string, not number on ES response
+	if key == "limit" && reflect.ValueOf(value).Kind() == reflect.Float64 {
+		result[key] = strconv.Itoa(int(value.(float64)))
 	}
 }
