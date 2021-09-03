@@ -33,10 +33,9 @@ func TestAccElasticsearchSecurityRoleMapping(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "elasticsearch_role_mapping.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"metadata", "rules"},
+				ResourceName:      "elasticsearch_role_mapping.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

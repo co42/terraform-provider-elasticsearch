@@ -33,10 +33,9 @@ func TestAccElasticsearchWatcher(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "elasticsearch_watcher.test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"trigger", "input", "condition", "actions", "metadata"},
+				ResourceName:      "elasticsearch_watcher.test",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

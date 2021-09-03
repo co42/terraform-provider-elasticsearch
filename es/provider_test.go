@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/sirupsen/logrus"
-	prefixed "github.com/x-cray/logrus-prefixed-formatter"
+	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
 
 var testAccProviders map[string]*schema.Provider
@@ -15,8 +15,10 @@ var testAccProvider *schema.Provider
 func init() {
 
 	// Init logger
-	logrus.SetFormatter(new(prefixed.TextFormatter))
-	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&easy.Formatter{
+		LogFormat: "[%lvl%] %msg%\n",
+	})
+	//logrus.SetLevel(logrus.DebugLevel)
 
 	// Init provider
 	testAccProvider = Provider()
