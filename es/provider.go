@@ -99,6 +99,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	retry := d.Get("retry").(int)
 	waitBeforeRetry := d.Get("wait_before_retry").(int)
 	transport := &http.Transport{
+		Proxy:           http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{},
 	}
 	// Checks is valid URLs
