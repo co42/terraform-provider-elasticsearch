@@ -19,7 +19,7 @@ test: fmtcheck
 	go test $(TEST) -timeout=30s -parallel=4
 
 testacc: fmt fmtcheck
-	ELASTICSEARCH_URLS=${ELASTICSEARCH_URLS} ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME} ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD} TF_ACC=1 go test $(TEST) -v -count 1 -parallel 1 -race -coverprofile=coverage.txt -covermode=atomic $(TESTARGS) -timeout 120m
+	ELASTICSEARCH_URLS=${ELASTICSEARCH_URLS} ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USERNAME} ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD} TF_ACC=1 go test $(TEST) -v -count 1 -parallel 1 -race -coverprofile=cover.out -covermode=atomic $(TESTARGS) -timeout 120m
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
