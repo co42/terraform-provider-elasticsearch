@@ -105,7 +105,7 @@ func parseDotPropertie(key string, value interface{}, result map[string]interfac
 	}
 
 	// Fix `limit` filed is string, not number on ES response
-	converFields := []string {
+	converFields := []string{
 		"limit",
 		"number_of_routing_shards",
 		"number_of_replicas",
@@ -119,5 +119,5 @@ func parseDotPropertie(key string, value interface{}, result map[string]interfac
 			break
 		}
 	}
-	
+
 }
