@@ -26,7 +26,7 @@ jobs:
         set -e
         docker-compose up -d
         until $(curl --output /dev/null --silent --head --fail -u elastic:changeme http://localhost:9200); do sleep 5; done
-        curl -XPOST -u elastic:changeme http://es:9200/_license/start_trial?acknowledge=true
+        curl -XPOST -u elastic:changeme http://localhost:9200/_license/start_trial?acknowledge=true
     - name: Run build
       run: make build
     - name: Run acceptance tests
