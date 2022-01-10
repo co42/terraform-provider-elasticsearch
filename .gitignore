@@ -17,6 +17,7 @@
 dist/
 coverage.txt
 cover.out
+coverage.out
 
 # terraform
 .terraform.lock.hcl
