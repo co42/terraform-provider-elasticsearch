@@ -3,7 +3,7 @@ module github.com/disaster37/terraform-provider-elasticsearch/v7
 go 1.17
 
 require (
-	github.com/elastic/go-elasticsearch/v7 v7.12.0
+	github.com/elastic/go-elasticsearch/v7 v7.16.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
