@@ -12,29 +12,29 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TestAccElasticsearchIndex(t *testing.T) {
+func TestAccElasticsearchIndexTemplateLegacy(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckElasticsearchIndexTemplateDestroy,
+		CheckDestroy: testCheckElasticsearchIndexTemplateLegacyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testElasticsearchIndexTemplate,
+				Config: testElasticsearchIndexTemplateLegacy,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckElasticsearchIndexTemplateExists("elasticsearch_index_template.test"),
+					testCheckElasticsearchIndexTemplateLegacyExists("elasticsearch_index_template_legacy.test"),
 				),
 			},
 			{
-				Config: testElasticsearchIndexTemplateUpdate,
+				Config: testElasticsearchIndexTemplateLegacyUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckElasticsearchIndexTemplateExists("elasticsearch_index_template.test"),
+					testCheckElasticsearchIndexTemplateLegacyExists("elasticsearch_index_template_legacy.test"),
 				),
 			},
 			{
-				ResourceName:      "elasticsearch_index_template.test",
+				ResourceName:      "elasticsearch_index_template_legacy.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -42,7 +42,7 @@ func TestAccElasticsearchIndex(t *testing.T) {
 	})
 }
 
-func testCheckElasticsearchIndexTemplateExists(name string) resource.TestCheckFunc {
+func testCheckElasticsearchIndexTemplateLegacyExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -72,9 +72,9 @@ func testCheckElasticsearchIndexTemplateExists(name string) resource.TestCheckFu
 	}
 }
 
-func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
+func testCheckElasticsearchIndexTemplateLegacyDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "elasticsearch_index_template" {
+		if rs.Type != "elasticsearch_index_template_legacy" {
 			continue
 		}
 
@@ -102,8 +102,8 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testElasticsearchIndexTemplate = `
-resource "elasticsearch_index_template" "test" {
+var testElasticsearchIndexTemplateLegacy = `
+resource "elasticsearch_index_template_legacy" "test" {
   name 		= "terraform-test"
   template 	= <<EOF
 {
@@ -121,8 +121,8 @@ EOF
 }
 `
 
-var testElasticsearchIndexTemplateUpdate = `
-resource "elasticsearch_index_template" "test" {
+var testElasticsearchIndexTemplateLegacyUpdate = `
+resource "elasticsearch_index_template_legacy" "test" {
   name 		= "terraform-test"
   template 	= <<EOF
 {

@@ -19,13 +19,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// resourceElasticsearchIndexTemplate handle the index template API call
-func resourceElasticsearchIndexTemplate() *schema.Resource {
+// resourceElasticsearchIndexTemplateLegacy handle the index template API call
+func resourceElasticsearchIndexTemplateLegacy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceElasticsearchIndexTemplateCreate,
-		Update: resourceElasticsearchIndexTemplateUpdate,
-		Read:   resourceElasticsearchIndexTemplateRead,
-		Delete: resourceElasticsearchIndexTemplateDelete,
+		Create: resourceElasticsearchIndexTemplateLegacyCreate,
+		Update: resourceElasticsearchIndexTemplateLegacyUpdate,
+		Read:   resourceElasticsearchIndexTemplateLegacyRead,
+		Delete: resourceElasticsearchIndexTemplateLegacyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -46,28 +46,28 @@ func resourceElasticsearchIndexTemplate() *schema.Resource {
 	}
 }
 
-// resourceElasticsearchIndexTemplateCreate create index template
-func resourceElasticsearchIndexTemplateCreate(d *schema.ResourceData, meta interface{}) error {
+// resourceElasticsearchIndexTemplateLegacyCreate create index template
+func resourceElasticsearchIndexTemplateLegacyCreate(d *schema.ResourceData, meta interface{}) error {
 
-	err := createIndexTemplate(d, meta)
+	err := createIndexTemplateLegacy(d, meta)
 	if err != nil {
 		return err
 	}
 	d.SetId(d.Get("name").(string))
-	return resourceElasticsearchIndexTemplateRead(d, meta)
+	return resourceElasticsearchIndexTemplateLegacyRead(d, meta)
 }
 
-// resourceElasticsearchIndexTemplateUpdate update index template
-func resourceElasticsearchIndexTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
-	err := createIndexTemplate(d, meta)
+// resourceElasticsearchIndexTemplateLegacyUpdate update index template
+func resourceElasticsearchIndexTemplateLegacyUpdate(d *schema.ResourceData, meta interface{}) error {
+	err := createIndexTemplateLegacy(d, meta)
 	if err != nil {
 		return err
 	}
-	return resourceElasticsearchIndexTemplateRead(d, meta)
+	return resourceElasticsearchIndexTemplateLegacyRead(d, meta)
 }
 
-// resourceElasticsearchIndexTemplateRead read index template
-func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interface{}) error {
+// resourceElasticsearchIndexTemplateLegacyRead read index template
+func resourceElasticsearchIndexTemplateLegacyRead(d *schema.ResourceData, meta interface{}) error {
 	id := d.Id()
 
 	client := meta.(*elastic.Client)
@@ -110,8 +110,8 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-// resourceElasticsearchIndexTemplateDelete delete index template
-func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta interface{}) error {
+// resourceElasticsearchIndexTemplateLegacyDelete delete index template
+func resourceElasticsearchIndexTemplateLegacyDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id := d.Id()
 
@@ -143,8 +143,8 @@ func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-// createIndexTemplate create or update index template
-func createIndexTemplate(d *schema.ResourceData, meta interface{}) error {
+// createIndexTemplateLegacy create or update index template
+func createIndexTemplateLegacy(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	template := d.Get("template").(string)
 

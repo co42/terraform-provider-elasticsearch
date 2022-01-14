@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -120,4 +121,31 @@ func parseDotPropertie(key string, value interface{}, result map[string]interfac
 		}
 	}
 
+}
+
+// diffSuppressIndexComponentTemplate permit to compare index component template in current state vs from API
+func diffSuppressIndexComponentTemplate(k, old, new string, d *schema.ResourceData) bool {
+	oo := &elastic.IndicesGetComponentTemplate{}
+	no := &elastic.IndicesGetComponentTemplate{}
+
+	if err := json.Unmarshal([]byte(old), &oo); err != nil {
+		return false
+	}
+	if err := json.Unmarshal([]byte(new), &no); err != nil {
+		return false
+	}
+
+	if oo.Template != nil {
+		if oo.Template.Aliases == nil {
+			oo.Template.Aliases = make(map[string]interface{})
+		}
+		if oo.Template.Mappings == nil {
+			oo.Template.Mappings = make(map[string]interface{})
+		}
+		if oo.Template.Settings == nil {
+			oo.Template.Settings = make(map[string]interface{})
+		}
+	}
+
+	return reflect.DeepEqual(oo.Template.Aliases, parseAllDotProperties(no.Template.Aliases)) && reflect.DeepEqual(oo.Template.Mappings, parseAllDotProperties(no.Template.Mappings)) && reflect.DeepEqual(oo.Template.Settings, parseAllDotProperties(no.Template.Settings))
 }
