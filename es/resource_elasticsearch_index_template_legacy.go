@@ -15,6 +15,7 @@ import (
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	olivere "github.com/olivere/elastic/v7"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -40,7 +41,7 @@ func resourceElasticsearchIndexTemplateLegacy() *schema.Resource {
 			"template": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: diffSuppressIndexTemplate,
+				DiffSuppressFunc: diffSuppressIndexTemplateLegacy,
 			},
 		},
 	}
@@ -94,7 +95,8 @@ func resourceElasticsearchIndexTemplateLegacyRead(d *schema.ResourceData, meta i
 	if err != nil {
 		return err
 	}
-	var indexTemplate map[string]interface{}
+
+	indexTemplate := make(map[string]*olivere.IndicesGetTemplateResponse)
 	if err := json.Unmarshal(b, &indexTemplate); err != nil {
 		return err
 	}
@@ -108,6 +110,7 @@ func resourceElasticsearchIndexTemplateLegacyRead(d *schema.ResourceData, meta i
 	d.Set("name", d.Id())
 	d.Set("template", string(indexTemplateJSON))
 	return nil
+
 }
 
 // resourceElasticsearchIndexTemplateLegacyDelete delete index template

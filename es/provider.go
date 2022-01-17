@@ -71,6 +71,7 @@ func Provider() *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"elasticsearch_index_lifecycle_policy":    resourceElasticsearchIndexLifecyclePolicy(),
 			"elasticsearch_index_template_legacy":     resourceElasticsearchIndexTemplateLegacy(),
+			"elasticsearch_index_template":            resourceElasticsearchIndexTemplate(),
 			"elasticsearch_index_component_template":  resourceElasticsearchIndexComponentTemplate(),
 			"elasticsearch_role":                      resourceElasticsearchSecurityRole(),
 			"elasticsearch_role_mapping":              resourceElasticsearchSecurityRoleMapping(),
