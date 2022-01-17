@@ -1,10 +1,9 @@
 # elasticsearch_index_template Resource Source
 
 This resource permit to manage the index template in Elasticsearch.
-You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
+You can see the API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/index-templates.html
 
 ***Supported Elasticsearch version:***
-  - v6
   - v7
 
 ## Example Usage
@@ -16,15 +15,15 @@ resource elasticsearch_index_template "test" {
   name 		= "terraform-test"
   template 	= <<EOF
 {
-  "index_patterns": [
-    "test"
-  ],
-  "settings": {
-    "index.refresh_interval": "5s",
-	"index.lifecycle.name": "policy-logstash-backup",
-    "index.lifecycle.rollover_alias": "logstash-backup-alias"
-  },
-  "order": 2
+	"index_patterns": ["test-index-template"],
+	"template": {
+		"settings": {
+			"index.refresh_interval": "5s",
+			"index.lifecycle.name": "policy-logstash-backup",
+    		"index.lifecycle.rollover_alias": "logstash-backup-alias"
+		}
+	},
+	"priority": 2
 }
 EOF
 }

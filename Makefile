@@ -93,7 +93,7 @@ trial-license:
 	curl -XPOST -u ${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD} ${ELASTICSEARCH_URLS}/_license/start_trial?acknowledge=true
 
 start-pods: clean-pods
-	kubectl run elasticsearch --image docker.elastic.co/elasticsearch/elasticsearch:7.5.1 --port "9200" --expose --env "cluster.name=test" --env "discovery.type=single-node" --env "ELASTIC_PASSWORD=changeme" --env "xpack.security.enabled=true" --env "ES_JAVA_OPTS=-Xms512m -Xmx512m" --env "path.repo=/tmp" --limits "cpu=500m,memory=1024Mi"
+	kubectl run elasticsearch --image docker.elastic.co/elasticsearch/elasticsearch:7.16.2 --port "9200" --expose --env "cluster.name=test" --env "discovery.type=single-node" --env "ELASTIC_PASSWORD=changeme" --env "xpack.security.enabled=true" --env "ES_JAVA_OPTS=-Xms512m -Xmx512m" --env "path.repo=/tmp" --limits "cpu=500m,memory=1024Mi"
 
 clean-pods:
 	kubectl delete --ignore-not-found pod/elasticsearch

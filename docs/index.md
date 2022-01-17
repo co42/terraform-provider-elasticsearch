@@ -41,6 +41,8 @@ provider "elasticsearch" {
 
 - [elasticsearch_index_lifecycle_policy](resources/elasticsearch_index_lifecycle_policy.md)
 - [elasticsearch_index_template](resources/elasticsearch_index_template.md)
+- [elasticsearch_index_component_template](resources/elasticsearch_index_component_template.md)
+- [elasticsearch_index_template_legacy](resources/elasticsearch_index_template_legacy.md)
 - [elasticsearch_role](resources/elasticsearch_role.md)
 - [elasticsearch_role_mapping](resources/elasticsearch_role_mapping.md)
 - [elasticsearch_user](resources/elasticsearch_user.md)

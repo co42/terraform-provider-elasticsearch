@@ -1,7 +1,6 @@
 // Manage index template in Elasticsearch
-// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html
+// API documentation: https://www.elastic.co/guide/en/elasticsearch/reference/current/index-templates.html
 // Supported version:
-//  - v6
 //  - v7
 
 package es
@@ -15,6 +14,7 @@ import (
 
 	elastic "github.com/elastic/go-elasticsearch/v7"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	olivere "github.com/olivere/elastic/v7"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -71,10 +71,10 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 	id := d.Id()
 
 	client := meta.(*elastic.Client)
-	res, err := client.API.Indices.GetTemplate(
-		client.API.Indices.GetTemplate.WithName(id),
-		client.API.Indices.GetTemplate.WithContext(context.Background()),
-		client.API.Indices.GetTemplate.WithPretty(),
+	res, err := client.API.Indices.GetIndexTemplate(
+		client.API.Indices.GetIndexTemplate.WithName(id),
+		client.API.Indices.GetIndexTemplate.WithContext(context.Background()),
+		client.API.Indices.GetIndexTemplate.WithPretty(),
 	)
 	if err != nil {
 		return err
@@ -94,12 +94,19 @@ func resourceElasticsearchIndexTemplateRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	var indexTemplate map[string]interface{}
-	if err := json.Unmarshal(b, &indexTemplate); err != nil {
+	indexTemplate := &olivere.IndicesGetIndexTemplateResponse{}
+	if err := json.Unmarshal(b, indexTemplate); err != nil {
 		return err
 	}
 
-	indexTemplateJSON, err := json.Marshal(indexTemplate[id])
+	if len(indexTemplate.IndexTemplates) == 0 {
+		fmt.Printf("[WARN] Index template %s not found - removing from state", id)
+		log.Warnf("Index template %s not found - removing from state", id)
+		d.SetId("")
+		return nil
+	}
+
+	indexTemplateJSON, err := json.Marshal(indexTemplate.IndexTemplates[0].IndexTemplate)
 	if err != nil {
 		return err
 	}
@@ -116,10 +123,10 @@ func resourceElasticsearchIndexTemplateDelete(d *schema.ResourceData, meta inter
 	id := d.Id()
 
 	client := meta.(*elastic.Client)
-	res, err := client.API.Indices.DeleteTemplate(
+	res, err := client.API.Indices.DeleteIndexTemplate(
 		id,
-		client.API.Indices.DeleteTemplate.WithContext(context.Background()),
-		client.API.Indices.DeleteTemplate.WithPretty(),
+		client.API.Indices.DeleteIndexTemplate.WithContext(context.Background()),
+		client.API.Indices.DeleteIndexTemplate.WithPretty(),
 	)
 
 	if err != nil {
@@ -149,11 +156,11 @@ func createIndexTemplate(d *schema.ResourceData, meta interface{}) error {
 	template := d.Get("template").(string)
 
 	client := meta.(*elastic.Client)
-	res, err := client.API.Indices.PutTemplate(
+	res, err := client.API.Indices.PutIndexTemplate(
 		name,
 		strings.NewReader(template),
-		client.API.Indices.PutTemplate.WithContext(context.Background()),
-		client.API.Indices.PutTemplate.WithPretty(),
+		client.API.Indices.PutIndexTemplate.WithContext(context.Background()),
+		client.API.Indices.PutIndexTemplate.WithPretty(),
 	)
 
 	if err != nil {

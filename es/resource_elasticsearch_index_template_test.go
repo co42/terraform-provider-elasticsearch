@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func TestAccElasticsearchIndex(t *testing.T) {
+func TestAccElasticsearchIndexTemplate(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -49,16 +49,16 @@ func testCheckElasticsearchIndexTemplateExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", name)
 		}
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No inde ID is set")
+			return fmt.Errorf("No index ID is set")
 		}
 
 		meta := testAccProvider.Meta()
 
 		client := meta.(*elastic.Client)
-		res, err := client.API.Indices.GetTemplate(
-			client.API.Indices.GetTemplate.WithName(rs.Primary.ID),
-			client.API.Indices.GetTemplate.WithContext(context.Background()),
-			client.API.Indices.GetTemplate.WithPretty(),
+		res, err := client.API.Indices.GetIndexTemplate(
+			client.API.Indices.GetIndexTemplate.WithName(rs.Primary.ID),
+			client.API.Indices.GetIndexTemplate.WithContext(context.Background()),
+			client.API.Indices.GetIndexTemplate.WithPretty(),
 		)
 		if err != nil {
 			return err
@@ -81,10 +81,10 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 		meta := testAccProvider.Meta()
 
 		client := meta.(*elastic.Client)
-		res, err := client.API.Indices.DeleteTemplate(
+		res, err := client.API.Indices.DeleteIndexTemplate(
 			rs.Primary.ID,
-			client.API.Indices.DeleteTemplate.WithContext(context.Background()),
-			client.API.Indices.DeleteTemplate.WithPretty(),
+			client.API.Indices.DeleteIndexTemplate.WithContext(context.Background()),
+			client.API.Indices.DeleteIndexTemplate.WithPretty(),
 		)
 		if err != nil {
 			return err
@@ -104,18 +104,18 @@ func testCheckElasticsearchIndexTemplateDestroy(s *terraform.State) error {
 
 var testElasticsearchIndexTemplate = `
 resource "elasticsearch_index_template" "test" {
-  name 		= "terraform-test"
+  name 		= "terraform-test-index-template"
   template 	= <<EOF
 {
-  "index_patterns": [
-    "test"
-  ],
-  "settings": {
-    "index.refresh_interval": "5s",
-	"index.lifecycle.name": "policy-logstash-backup",
-    "index.lifecycle.rollover_alias": "logstash-backup-alias"
-  },
-  "order": 2
+	"index_patterns": ["test-index-template"],
+	"template": {
+		"settings": {
+			"index.refresh_interval": "5s",
+			"index.lifecycle.name": "policy-logstash-backup",
+    		"index.lifecycle.rollover_alias": "logstash-backup-alias"
+		}
+	},
+	"priority": 2
 }
 EOF
 }
@@ -123,18 +123,18 @@ EOF
 
 var testElasticsearchIndexTemplateUpdate = `
 resource "elasticsearch_index_template" "test" {
-  name 		= "terraform-test"
+  name 		= "terraform-test-index-template"
   template 	= <<EOF
 {
-  "index_patterns": [
-    "test"
-  ],
-  "settings": {
-    "index.refresh_interval": "3s",
-	"index.lifecycle.name": "policy-logstash-backup",
-    "index.lifecycle.rollover_alias": "logstash-backup-alias"
-  },
-  "order": 2
+	"index_patterns": ["test-index-template"],
+	"template": {
+		"settings": {
+			"index.refresh_interval": "3s",
+			"index.lifecycle.name": "policy-logstash-backup",
+    		"index.lifecycle.rollover_alias": "logstash-backup-alias"
+		}
+	},
+	"priority": 2
 }
 EOF
 }
