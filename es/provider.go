@@ -82,6 +82,7 @@ func Provider() *schema.Provider {
 			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
 			"elasticsearch_ingest_pipeline":           resourceElasticsearchIngestPipeline(),
 			"elasticsearch_data_stream":               resourceElasticsearchDataStream(),
+			"elasticsearch_transform":                 resourceElasticsearchTransform(),
 		},
 
 		ConfigureFunc: providerConfigure,
