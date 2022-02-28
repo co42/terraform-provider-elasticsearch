@@ -1,7 +1,7 @@
 /*
 Package main create Elasticsearch provider for Terraform
 
-Read the doc to use it: https://github.com/disaster37/terraform-provider-elasticsearch/tree/7.x
+Read the doc to use it: https://github.com/co42/terraform-provider-elasticsearch/tree/8.x
 */
 package main
 
@@ -10,7 +10,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/disaster37/terraform-provider-elasticsearch/v7/es"
+	"github.com/co42/terraform-provider-elasticsearch/v8/es"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
@@ -36,7 +36,7 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: es.Provider}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/disaster37/elasticsearch", opts)
+		err := plugin.Debug(context.Background(), "registry.terraform.io/co42/elasticsearch", opts)
 
 		if err != nil {
 			log.Fatal(err.Error())

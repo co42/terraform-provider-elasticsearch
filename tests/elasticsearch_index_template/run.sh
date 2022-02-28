@@ -4,10 +4,10 @@ cat <<EOT > ${HOME}/.terraformrc
 provider_installation {
     filesystem_mirror {
         path    = "${PWD}/../../registry"
-        include = ["registry.terraform.io/disaster37/elasticsearch"]
+        include = ["registry.terraform.io/co42/elasticsearch"]
     }
     direct {
-        exclude = ["registry.terraform.io/disaster37/elasticsearch"]
+        exclude = ["registry.terraform.io/co42/elasticsearch"]
     }
 }
 EOT

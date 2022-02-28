@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     elasticsearch = {
-      source = "disaster37/elasticsearch"
+      source = "co42/elasticsearch"
       version = "1.0.0"
     }
   }
