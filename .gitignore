@@ -25,3 +25,5 @@ coverage.out
 *.tfstate.*
 .terraform
 registry/
+
+.idea/
