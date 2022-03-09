@@ -10,7 +10,7 @@ import (
 	"flag"
 	"os"
 
-	"github.com/disaster37/terraform-provider-elasticsearch/v7/es"
+	"github.com/disaster37/terraform-provider-elasticsearch/v8/es"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"

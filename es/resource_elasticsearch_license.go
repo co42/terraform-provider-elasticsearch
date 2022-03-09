@@ -13,8 +13,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	elastic "github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -52,7 +52,7 @@ func resourceElasticsearchLicense() *schema.Resource {
 			"license": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				DiffSuppressFunc: suppressLicense,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 			"use_basic_license": {
 				Type:     schema.TypeBool,

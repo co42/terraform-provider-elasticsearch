@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	elastic "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	olivere "github.com/olivere/elastic/v7"
 	"github.com/pkg/errors"
@@ -40,7 +40,7 @@ func resourceElasticsearchIndexTemplate() *schema.Resource {
 			"template": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: diffSuppressIndexTemplate,
+				DiffSuppressFunc: suppressEquivalentJSON,
 			},
 		},
 	}
