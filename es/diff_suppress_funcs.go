@@ -271,7 +271,6 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 	return reflect.DeepEqual(no, oo)
 }
 
-
 // diffSuppressTransform permit to compare transform in current state vs from API
 func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
 	oo := &Transform{}
@@ -291,10 +290,9 @@ func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
 	oo.Id = ""
 	oo.CreateTime = 0
 	oo.Version = ""
-	
+
 	return reflect.DeepEqual(no, oo)
 }
-
 
 // diffSuppressIngestPipeline permit to compare ingest pipeline in current state vs from API
 func diffSuppressIngestPipeline(k, old, new string, d *schema.ResourceData) bool {
