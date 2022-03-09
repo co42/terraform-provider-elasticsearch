@@ -291,6 +291,9 @@ func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
 	oo.Id = ""
 	oo.CreateTime = 0
 	oo.Version = ""
+	
+	return reflect.DeepEqual(no, oo)
+}
 
 
 // diffSuppressIngestPipeline permit to compare ingest pipeline in current state vs from API
