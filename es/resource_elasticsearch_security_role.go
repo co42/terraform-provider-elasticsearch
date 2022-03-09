@@ -14,7 +14,7 @@ import (
 	"io/ioutil"
 	"reflect"
 
-	elastic "github.com/elastic/go-elasticsearch/v7"
+	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -328,7 +328,7 @@ func createRole(d *schema.ResourceData, meta interface{}) error {
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return errors.Errorf("Error when add role %s: %s", name, res.String())
+		return errors.Errorf("Error when add role %s: %s\ndata: %s", name, res.String(), string(data))
 	}
 
 	return nil
@@ -336,10 +336,15 @@ func createRole(d *schema.ResourceData, meta interface{}) error {
 
 // buildRolesIndicesPermissions convert list to list of RoleIndicesPermissions objects
 func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
-	rolesIndicesPermissions := make([]RoleIndicesPermissions, len(raws))
 
-	for i, raw := range raws {
+	rolesIndicesPermissions := make([]RoleIndicesPermissions, 0, len(raws))
+
+	for _, raw := range raws {
 		m := raw.(map[string]interface{})
+		// Mitigeate bug https://github.com/hashicorp/terraform-plugin-sdk/issues/895
+		if len(m["names"].(*schema.Set).List()) == 0 {
+			continue
+		}
 		roleIndicesPermisions := RoleIndicesPermissions{
 			Names:         convertArrayInterfaceToArrayString(m["names"].(*schema.Set).List()),
 			Privileges:    convertArrayInterfaceToArrayString(m["privileges"].(*schema.Set).List()),
@@ -347,7 +352,7 @@ func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
 			FieldSecurity: optionalInterfaceJSON(m["field_security"].(string)),
 		}
 
-		rolesIndicesPermissions[i] = roleIndicesPermisions
+		rolesIndicesPermissions = append(rolesIndicesPermissions, roleIndicesPermisions)
 
 	}
 
@@ -356,17 +361,22 @@ func buildRolesIndicesPermissions(raws []interface{}) []RoleIndicesPermissions {
 
 // buildRolesApplicationPrivileges convert list to list of RoleApplicationPrivileges objects
 func buildRolesApplicationPrivileges(raws []interface{}) []RoleApplicationPrivileges {
-	rolesApplicationPrivileges := make([]RoleApplicationPrivileges, len(raws))
+	rolesApplicationPrivileges := make([]RoleApplicationPrivileges, 0, len(raws))
 
-	for i, raw := range raws {
+	for _, raw := range raws {
 		m := raw.(map[string]interface{})
+
+		// Mitigeate bug https://github.com/hashicorp/terraform-plugin-sdk/issues/895
+		if m["application"].(string) == "" {
+			continue
+		}
 		roleApplicationPrivileges := RoleApplicationPrivileges{
 			Application: m["application"].(string),
 			Privileges:  convertArrayInterfaceToArrayString(m["privileges"].(*schema.Set).List()),
 			Resources:   convertArrayInterfaceToArrayString(m["resources"].(*schema.Set).List()),
 		}
 
-		rolesApplicationPrivileges[i] = roleApplicationPrivileges
+		rolesApplicationPrivileges = append(rolesApplicationPrivileges, roleApplicationPrivileges)
 
 	}
 
