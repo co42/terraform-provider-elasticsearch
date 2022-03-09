@@ -271,6 +271,31 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 	return reflect.DeepEqual(no, oo)
 }
 
+
+// diffSuppressTransform permit to compare transform in current state vs from API
+func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
+	oo := &Transform{}
+	no := &Transform{}
+
+	if err := json.Unmarshal([]byte(old), &oo); err != nil {
+		fmt.Printf("[ERR] Error when converting to Transform on old object: %s", err.Error())
+		log.Errorf("Error when converting to Transform on old object: %s\n%s", err.Error(), old)
+		return false
+	}
+	if err := json.Unmarshal([]byte(new), &no); err != nil {
+		fmt.Printf("[ERR] Error when converting to Transform on new object: %s", err.Error())
+		log.Errorf("Error when converting to Transform on new object: %s\n%s", err.Error(), new)
+		return false
+	}
+
+	oo.Id = ""
+	oo.CreateTime = 0
+	oo.Version = ""
+	
+	return reflect.DeepEqual(no, oo)
+}
+
+
 // diffSuppressIngestPipeline permit to compare ingest pipeline in current state vs from API
 func diffSuppressIngestPipeline(k, old, new string, d *schema.ResourceData) bool {
 	oo := &elastic.IngestGetPipeline{}
