@@ -5,7 +5,8 @@
 [![GoDoc](https://godoc.org/github.com/disaster37/terraform-provider-elasticsearch?status.svg)](http://godoc.org/github.com/disaster37/terraform-provider-elasticsearch)
 [![codecov](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/7.x/graph/badge.svg)](https://codecov.io/gh/disaster37/terraform-provider-elasticsearch/branch/7.x)
 
-This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
+This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 , v7 and v8 of elasticsearch.
+For Elasticsearch 8, you need to use branch and release 8.x
 For Elasticsearch 7, you need to use branch and release 7.x
 For Elasticsearch 6, you need to use branch and release 6.x
 
@@ -43,7 +44,7 @@ See LICENSE.
 ## Contributing
 
 1. Fork it ( https://github.com/disaster37/terraform-provider-elasticsearch/fork )
-2. Go to the right branch (7.x for Elasticsearch 7 or 6.x for Elasticsearch 6) (`git checkout 7.x`)
+2. Go to the right branch (8.x for Elasticsearch 8, 7.x for Elasticsearch 7 or 6.x for Elasticsearch 6) (`git checkout 8.x`)
 3. Create your feature branch (`git checkout -b my-new-feature`)
 4. Add feature, add acceptance test and tets your code (`ELASTICSEARCH_URLS=http://127.0.0.1:9200 ELASTICSEARCH_USERNAME=elastic ELASTICSEARCH_PASSWORD=changeme make testacc`)
 5. Commit your changes (`git commit -am 'Add some feature'`)

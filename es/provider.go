@@ -12,8 +12,9 @@ import (
 	"strings"
 	"time"
 
-	elastic "github.com/elastic/go-elasticsearch/v7"
-	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/coreos/go-semver/semver"
+	elastic "github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -81,6 +82,7 @@ func Provider() *schema.Provider {
 			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
 			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
 			"elasticsearch_transform":                 resourceElasticsearchTransform(),
+			"elasticsearch_ingest_pipeline":           resourceElasticsearchIngestPipeline(),
 		},
 
 		ConfigureFunc: providerConfigure,
@@ -167,8 +169,11 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	version := data["version"].(map[string]interface{})["number"].(string)
 	log.Debugf("Server: %s", version)
 
-	if version < "7.0.0" || version >= "8.0.0" {
-		return nil, errors.Errorf("ElasticSearch version is not 7.x (%s), you need to use the right version of elasticsearch provider", version)
+	vCurrent := semver.New(version)
+	vMinimal := semver.New("8.0.0")
+
+	if vCurrent.LessThan(*vMinimal) {
+		return nil, errors.New("Elasticsearch is older than 8.0.0")
 	}
 
 	return client, nil

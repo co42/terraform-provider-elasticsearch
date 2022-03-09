@@ -1,9 +1,11 @@
-module github.com/disaster37/terraform-provider-elasticsearch/v7
+module github.com/disaster37/terraform-provider-elasticsearch/v8
 
 go 1.17
 
 require (
-	github.com/elastic/go-elasticsearch/v7 v7.16.0
+	github.com/coreos/go-semver v0.3.0
+	github.com/elastic/go-elasticsearch/v8 v8.0.0
+	github.com/elastic/go-ucfg v0.8.4
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olivere/elastic/v7 v7.0.31
@@ -17,6 +19,7 @@ require (
 	github.com/apparentlymart/go-textseg v1.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.0.0-alpha // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect

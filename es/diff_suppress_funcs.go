@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/elastic/go-ucfg"
+	"github.com/elastic/go-ucfg/diff"
+	ucfgjson "github.com/elastic/go-ucfg/json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
@@ -65,14 +68,30 @@ func diffSuppressIndexTemplateLegacy(k, old, new string, d *schema.ResourceData)
 
 // suppressEquivalentJSON permit to compare state store as JSON string
 func suppressEquivalentJSON(k, old, new string, d *schema.ResourceData) bool {
-	var oldObj, newObj interface{}
-	if err := json.Unmarshal([]byte(old), &oldObj); err != nil {
+
+	if old == "" {
+		old = `{}`
+	}
+	if new == "" {
+		new = `{}`
+	}
+	confOld, err := ucfgjson.NewConfig([]byte(old), ucfg.PathSep("."))
+	if err != nil {
+		fmt.Printf("[ERR] Error when converting current Json: %s\ndata: %s", err.Error(), old)
+		log.Errorf("Error when converting current Json: %s\ndata: %s", err.Error(), old)
 		return false
 	}
-	if err := json.Unmarshal([]byte(new), &newObj); err != nil {
+	confNew, err := ucfgjson.NewConfig([]byte(new), ucfg.PathSep("."))
+	if err != nil {
+		fmt.Printf("[ERR] Error when converting new Json: %s\ndata: %s", err.Error(), new)
+		log.Errorf("Error when converting new Json: %s\ndata: %s", err.Error(), new)
 		return false
 	}
-	return reflect.DeepEqual(oldObj, newObj)
+
+	currentDiff := diff.CompareConfigs(confOld, confNew)
+	log.Debugf("Diff\n: %s", currentDiff.GoStringer())
+
+	return !currentDiff.HasChanged()
 }
 
 // suppressLicense permit to compare license in current state VS API
@@ -252,6 +271,7 @@ func diffSuppressIndexTemplate(k, old, new string, d *schema.ResourceData) bool 
 	return reflect.DeepEqual(no, oo)
 }
 
+
 // diffSuppressTransform permit to compare transform in current state vs from API
 func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
 	oo := &Transform{}
@@ -271,6 +291,23 @@ func diffSuppressTransform(k, old, new string, d *schema.ResourceData) bool {
 	oo.Id = ""
 	oo.CreateTime = 0
 	oo.Version = ""
+
+
+// diffSuppressIngestPipeline permit to compare ingest pipeline in current state vs from API
+func diffSuppressIngestPipeline(k, old, new string, d *schema.ResourceData) bool {
+	oo := &elastic.IngestGetPipeline{}
+	no := &elastic.IngestGetPipeline{}
+
+	if err := json.Unmarshal([]byte(old), &oo); err != nil {
+		fmt.Printf("[ERR] Error when converting to IngestGetPipeline on old object: %s", err.Error())
+		log.Errorf("Error when converting to IngestGetPipeline on old object: %s\n%s", err.Error(), old)
+		return false
+	}
+	if err := json.Unmarshal([]byte(new), &no); err != nil {
+		fmt.Printf("[ERR] Error when converting to IngestGetPipeline on new object: %s", err.Error())
+		log.Errorf("Error when converting to IngestGetPipeline on new object: %s\n%s", err.Error(), new)
+		return false
+	}
 
 	return reflect.DeepEqual(no, oo)
 }

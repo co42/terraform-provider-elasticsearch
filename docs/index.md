@@ -1,6 +1,7 @@
 # Elasticsearch Provider
 
-This is a terraform provider that lets you provision elasticsearch resources, compatible with v6 and v7 of elasticsearch.
+This is a terraform provider that lets you provision elasticsearch resources, compatible with v6, v7 and v8 of elasticsearch.
+For Elasticsearch 8, you need to use branch and release 8.x
 For Elasticsearch 7, you need to use branch and release 7.x
 For Elasticsearch 6, you need to use branch and release 6.x
 
