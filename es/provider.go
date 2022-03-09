@@ -81,6 +81,7 @@ func Provider() *schema.Provider {
 			"elasticsearch_snapshot_repository":       resourceElasticsearchSnapshotRepository(),
 			"elasticsearch_snapshot_lifecycle_policy": resourceElasticsearchSnapshotLifecyclePolicy(),
 			"elasticsearch_watcher":                   resourceElasticsearchWatcher(),
+			"elasticsearch_ingest_pipeline":           resourceElasticsearchIngestPipeline(),
 		},
 
 		ConfigureFunc: providerConfigure,
